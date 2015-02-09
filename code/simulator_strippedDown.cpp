@@ -37,8 +37,6 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
 
   Material material;
   Light light;
-  Mesh box;
-  Buffer<Mesh::Vertex> oldPos;
   Buffer<Mesh::Vertex> oldPos_tree;
   Mesh m_leaf;
   Mesh m_root;
@@ -66,7 +64,6 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
   int leafCountBox;
   int numNewLeaves;
   float newLeafRadius;
-  int trunkSize;
   float treeWidth;    
   float treeHeight;   
   float trunkHeight;
@@ -105,7 +102,6 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
   vector<Vec3f> newPos;
   vector<Vec3f> parentPos;
   vector<int> newPosGroup;
-  vector<int> newPosGroup_tree;
   vector<int> numNewBranches;
   vector<float> widthGroup;
   vector<Color> colorGroup;
@@ -231,8 +227,6 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     m_leaf.primitive(Graphics::TRIANGLE_STRIP);
     m_root.primitive(Graphics::POINTS);
     
-    box.primitive(Graphics::LINES);
-
     r0 = 4.f;
     r1 = 1.f;
     s0 = .5;
@@ -332,43 +326,30 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     for (branchIt iterator = branches.begin(); iterator != branches.end(); iterator++) {
 
       if (iterator->second.Parent != NULL){
-        box.vertex(iterator->second.Parent->Position);
-        box.vertex(iterator->second.Parent->Position);
-        // box.vertex(iterator->second.Position);
         newPos.push_back(iterator->second.Position);
         newPos.push_back(iterator->second.Position);
         
+        newPosGroup.push_back(growthIteration);
+        newPosGroup.push_back(growthIteration);
         newPosGroup.push_back(growthIteration);
         newPosGroup.push_back(growthIteration);
 
         parentPos.push_back(iterator->second.Parent->Position);   
         parentPos.push_back(iterator->second.Parent->Position);
+        parentPos.push_back(iterator->second.Parent->Position);
+        parentPos.push_back(iterator->second.Parent->Position);
         
+        numNewBranches.push_back(1);
+        numNewBranches.push_back(1);
         numNewBranches.push_back(1);
         numNewBranches.push_back(1);
 
         m_root.vertex(iterator->second.Position);
         m_root.color(rootColor);
-
-
       }
     }
 
-    trunkSize = box.vertices().size();
-
-    state->pSize = box.vertices().size();
-
-    for (int i=0; i<box.vertices().size(); i++) {
-      state->treePos[i] = box.vertices()[i];
-      // state->treeColor[i] = box.colors()[i];
-      // state->treePos[i] = m_tree.vertices()[i];
-    }
-    // maker.set(*state);
-    
-    // cout << "TRUNK VERTEX INFO:" << endl;
-    // for (int i = 0; i < box.vertices().size(); i+=1) {
-    //   cout << "vertex " << i << ": " << box.vertices()[i] << endl;
-    // }
+    state->pSize = m_root.vertices().size();
 
   }
 
@@ -393,11 +374,6 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
       cout << "num leaves skipped: " << leavesSkipped << endl;
       cout << "leaves size: " << state->currentLeafSize << endl;
       cout << "" << endl;
-
-      if (leavesSkipped >= state->currentLeafSize * .9 && dynamicLeaves == true) {
-        cout << "more leaves!" << endl;
-        moreLeaves();
-      }
 
     if (leavesSkipped >= state->currentLeafSize * .9 && dynamicLeaves == false) {
       
@@ -521,74 +497,73 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     }
     cout << "Number of new branches: " << newBranches.size() << endl;
     
-    // // this is the method i'll use when I rewrite this to correctly adjust widths
-    // //      
-    // m_test.reset();
-    // for (branchIt iterator = branches.begin(); iterator != branches.end(); iterator++) {
-    //   Vec3f crossP;
-      
-    //   Vec3f vertAhead;
-    //   Vec3f vertBehind;
-    //   Vec3f vertOrig;
-    //   Vec3f vertNew;
-
-    //   Vec3f vert1;
-    //   Vec3f vert2;
-    //   Vec3f vert3;
-    //   Vec3f vert4;
-
-    //   Vec3f move1;
-    //   Vec3f move2;
-    //   Vec3f move3;
-    //   Vec3f move4;
+    // an alternative method of writing vertex information...
+    //      
+    m_test.reset();
+    for (branchIt iterator = branches.begin(); iterator != branches.end(); iterator++) {
+      if (iterator->second.Parent != NULL){
+        Vec3f crossP;
         
+        Vec3f vertAhead;
+        Vec3f vertBehind;
+        Vec3f vertOrig;
+        Vec3f vertNew;
 
-    //   // vertOrig = m_tree.vertices()[i];
-    //   // vertNew = newPos_tree[i];
-    //   // vertAhead = m_tree.vertices()[i+1];
-    //   // vertBehind = m_tree.vertices()[i-1];
+        Vec3f vert1;
+        Vec3f vert2;
+        Vec3f vert3;
+        Vec3f vert4;
 
-    //   if (iterator->second.Parent != NULL){
+        Vec3f move1;
+        Vec3f move2;
+        Vec3f move3;
+        Vec3f move4;
 
-    //     crossP = cross(iterator->second.Parent->Position, iterator->second.Position) / 2;
+        crossP = cross(iterator->second.Parent->Position, iterator->second.Position) / 2;
 
-    //     vert1 = iterator->second.Parent->Position + crossP * branchLength * branchWidth;
-    //     vert2 = iterator->second.Parent->Position - crossP * branchLength * branchWidth;
-    //     vert3 = iterator->second.Position - crossP * branchLength * branchWidth;
-    //     vert4 = iterator->second.Position + crossP * branchLength * branchWidth;
+        vert1 = iterator->second.Parent->Position + crossP * branchLength * branchWidth;
+        vert2 = iterator->second.Parent->Position - crossP * branchLength * branchWidth;
+        vert3 = iterator->second.Position - crossP * branchLength * branchWidth;
+        vert4 = iterator->second.Position + crossP * branchLength * branchWidth;
 
-    //     move1 = vert1 - vert2;
-    //     move2 = vert2 - vert1;
-    //     move3 = vert3 - vert4;
-    //     move4 = vert4 - vert3;
+        move1 = vert1 - vert2;
+        move2 = vert2 - vert1;
+        move3 = vert3 - vert4;
+        move4 = vert4 - vert3;
 
-    //     vert1 = vert1 + move1 * branchLength * iterator->second.Width;
-    //     vert2 = vert2 + move2 * branchLength * iterator->second.Width;
-    //     vert3 = vert3 + move3 * branchLength * iterator->second.Width;
-    //     vert4 = vert4 + move4 * branchLength * iterator->second.Width;
+        vert1 = vert1 + move1 * branchLength * iterator->second.Width;
+        vert2 = vert2 + move2 * branchLength * iterator->second.Width;
+        vert3 = vert3 + move3 * branchLength * iterator->second.Width;
+        vert4 = vert4 + move4 * branchLength * iterator->second.Width;
 
         
-    //     m_test.vertex(vert1);
-    //     m_test.vertex(vert2);
-    //     m_test.vertex(vert3);
-    //     m_test.vertex(vert4);
+        m_test.vertex(vert1);
+        m_test.vertex(vert2);
+        m_test.vertex(vert3);
+        m_test.vertex(vert4);
 
-    //   }
-    //   // cout << "m_test size: " << m_test.vertices().size() << endl;
-    // }
-    
+        m_test.color(RGB(1,1,1));
+        m_test.color(RGB(1,1,1));
+        m_test.color(RGB(1,1,1));
+        m_test.color(RGB(1,1,1));
+
+      }
+      // cout << "m_test size: " << m_test.vertices().size() << endl;
+    }
+  
+    cout << "branch info: " << endl;
+    cout << "branches size: " << branches.size() << endl;
+  
     // add new branches to tree
     bool branchAdded = false;
     for (branchIt iterator = newBranches.begin(); iterator != newBranches.end(); iterator++) {
       // if (iterator->second.Parent != NULL){
+        // ^^^^^ having issues with this
       
       branches[iterator->first] = iterator->second;
-
-      Branch p (iterator->second.Parent, iterator->second.Position, iterator->second.GrowDir, 
-        iterator->second.GrowCount, iterator->second.Skip, iterator->second.Width);
       
-      //having issues with hitting NULL in trunk........
-      //
+      // having issues with hitting NULL in trunk...
+      // the following is the element of the C# implementation that I want to emulate...
       //
       // while (p.Parent != NULL) {
       //   if (p.Parent->Parent != NULL){
@@ -599,9 +574,6 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
       // }
 
       branches[iterator->first].Width += .001;
-
-      cout << "branch info: " << endl;
-      cout << "branches size: " << branches.size() << endl;
     
       // draw two vertices at the parent position (two makes a line), but store the new position 
       // in a separate array at the same index to be used later as an animation target
@@ -614,10 +586,10 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
       m_tree.vertex(iterator->second.Parent->Position - crossP * branchLength * branchWidth);
       m_tree.vertex(iterator->second.Parent->Position + crossP * branchLength * branchWidth);
 
-      newPos_tree.push_back(iterator->second.Position - crossP * branchLength * branchWidth);
-      newPos_tree.push_back(iterator->second.Position + crossP * branchLength * branchWidth);
       newPos_tree.push_back(iterator->second.Position + crossP * branchLength * branchWidth);
       newPos_tree.push_back(iterator->second.Position - crossP * branchLength * branchWidth);
+      newPos_tree.push_back(iterator->second.Position - crossP * branchLength * branchWidth);
+      newPos_tree.push_back(iterator->second.Position + crossP * branchLength * branchWidth);
 
       m_tree.color(treeInitialColor);
       m_tree.color(treeInitialColor);
@@ -631,14 +603,9 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
       colorGroup.push_back(RGB(0,0,0));
       colorGroup.push_back(RGB(0,0,0));
       colorGroup.push_back(RGB(0,0,0));
-      newPosGroup_tree.push_back(growthIteration);
-      newPosGroup_tree.push_back(growthIteration);
-      newPosGroup_tree.push_back(growthIteration);
-      newPosGroup_tree.push_back(growthIteration);
       
-      box.vertex(iterator->second.Parent->Position);
-      box.vertex(iterator->second.Parent->Position);
-      
+      parentPos.push_back(iterator->second.Parent->Parent->Position);   
+      parentPos.push_back(iterator->second.Parent->Parent->Position);   
       parentPos.push_back(iterator->second.Parent->Parent->Position);   
       parentPos.push_back(iterator->second.Parent->Parent->Position);   
 
@@ -647,7 +614,11 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
       newPos.push_back(iterator->second.Position);
       newPosGroup.push_back(growthIteration);
       newPosGroup.push_back(growthIteration);
+      newPosGroup.push_back(growthIteration);
+      newPosGroup.push_back(growthIteration);
 
+      numNewBranches.push_back(newBranches.size());
+      numNewBranches.push_back(newBranches.size());
       numNewBranches.push_back(newBranches.size());
       numNewBranches.push_back(newBranches.size());
 
@@ -661,8 +632,8 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
 
       // cout << "**************************************" << endl;
       // cout << "BRANCHES VERTEX INFO:" << endl;
-      // for (int i = 0; i < box.vertices().size(); i+=1) {
-      //   cout << "vertex " << i << ": " << box.vertices()[i] << endl;
+      // for (int i = 0; i < m_tree.vertices().size(); i+=1) {
+      //   cout << "vertex " << i << ": " << m_tree.vertices()[i] << endl;
       // }
 
     if (branchAdded == false) {
@@ -671,9 +642,7 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     }
     cout << "Number of leaves: " << leaves.size() << endl;
     cout << "Number of branches: " << branches.size() << endl;
-    cout << "Number of vertices: " << box.vertices().size() << endl;
-
-
+    cout << "Number of vertices: " << m_tree.vertices().size() << endl;
 
     // update tree width and color
     //
@@ -700,17 +669,16 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
         // scale width by widthIncrement, also update newPos vector accordingly to be used by anim
         if (i%2==0) {
           m_tree.vertices()[i] = vertOrig + move * branchLength * widthIncrement;
-          newPos_tree[i] = vertNew - move * branchLength * widthIncrement;
+          newPos_tree[i] = vertNew + move * branchLength * widthIncrement;
         }
         if (i%2==1) {
           m_tree.vertices()[i] = vertOrig + move2 * branchLength * widthIncrement;
-          newPos_tree[i] = vertNew - move2 * branchLength * widthIncrement;
+          newPos_tree[i] = vertNew + move2 * branchLength * widthIncrement;
         }
       }
 
       // set min color and max/final color
       //
-      // colorGroup[i] = treeIncrementColor;
       m_tree.colors()[i] += RGB(treeIncrementColor);
 
       if (m_tree.colors()[i][0] >= 1) m_tree.colors()[i][0] = 1;
@@ -721,9 +689,6 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
       if (m_tree.colors()[i][2] <= .02) m_tree.colors()[i][2] = .02;
 
     }
-
-
-
 
     growthIteration += 1;
     growthComputing = false;
@@ -737,65 +702,15 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     LOG("compute cycle %d", frame);
     frame++;
 
-    computeThread = thread([&]() {
+    computeThread = thread( [&]() {
       while (threadDone == false ) {
         if (animStep >= growthIteration - growthBufferSteps && growthComputing == false) {
             Grow();
-            oldPos = box.vertices();
             oldPos_tree = m_tree.vertices();
         }
       }
-
-    });
+    } );
   }
-
-
-  void moreLeaves() {
-    cout << "<<" << endl;
-    cout << "Adding more leaves..." << endl;
-
-    float radius = newLeafRadius;
-    int sumNewLeaves = 0;
-    int oldNumLeaves = leaves.size();
-
-    typedef map<Vec3f, Branch, compare>::iterator branchIt;
-    for (branchIt iterator = newBranches.begin(); iterator != newBranches.end(); iterator++) {
-    
-    Vec3f avgDirection = iterator->second.GrowDir;
-    avgDirection.normalize();
-
-    Vec3f pos = iterator->second.Position;
-    Vec3f newPos;
-    newPos = iterator->second.Position + avgDirection * branchLength;
-
-      for (int i=0; i<=numNewLeaves; i++) {
-        Vec3f location;
-        location = Vec3f( (float)rnd::uniform(-radius,+radius),
-                          (float)rnd::uniform(-radius,+radius),
-                          (float)rnd::uniform(-radius,+radius));
-        location = Vec3f(location[0]+newPos[0],location[1]+newPos[1],location[2]+newPos[2]);
-        leaves.push_back(Leaf(location));
-
-        sumNewLeaves++;
-      }
-    }
-
-    for (int i=oldNumLeaves; i<leaves.size(); i++) {
-      // cout << "leaf " << i << " position: " << leaves[i].Position << endl;
-      state->leafColor[i] = leafColorHit;
-      state->leafPos[i] = leaves[i].Position;
-      state->leafSkip[i] = 0;
-
-      m_leaf.vertex(state->leafPos[i]);
-      m_leaf.color(state->leafColor[i]);
-    }
-
-    state->currentLeafSize = leaves.size();
-
-    cout << "Done adding leaves!" << endl;
-    cout << "<<" << endl;
-  }
-  
 
 
   virtual void onAnimate(double dt) {
@@ -842,22 +757,18 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     // animate based on two points starting in the same position. we will move one of them
     // to its new position to form a branch.
     //
-    for (int i = 0; i < box.vertices().size(); i+=2) {
-      if (newPosGroup[i] == animStep) {     //if growth iteration of branch group matches animation step
-
+    for (int i = 0; i < m_tree.vertices().size(); i+=4) {
+      if (newPosGroup[i] == animStep) {     // if growth iteration of branch group matches animation step
 
         // do the animation
-        if (box.vertices()[i] != newPos[i]) {
-          box.vertices()[i] = oldPos[i] * (1-time) + newPos[i] * time;
-          // state->treePos[i] = box.vertices()[i];
-          
+        if (m_tree.vertices()[i+2] != newPos_tree[i+2]) {          
+
           // animate the quads. we are skipping to every 4th vertex
-          //
-          m_tree.vertices()[i*2] = oldPos_tree[i*2] * (1-time) + newPos_tree[(i*2)+2] * time;
-          m_tree.vertices()[(i*2)+1] = oldPos_tree[(i*2)+1] * (1-time) + newPos_tree[(i*2)+3] * time;
+          m_tree.vertices()[i+2] = oldPos_tree[i+2] * (1-time) + newPos_tree[i+2] * time;
+          m_tree.vertices()[i+3] = oldPos_tree[(i)+3] * (1-time) + newPos_tree[i+3] * time;
           
           // snap to final position when in range and change leaf color if appropriate
-          if (abs((box.vertices()[i] - newPos[i]).mag()) <= .01 ) {
+          if (abs((m_tree.vertices()[i+2] - newPos_tree[i+2]).mag()) <= .01 ) {
 
             // check if close enough to a leaf to change its color
             for (int j=0; j<leaves.size(); j++){
@@ -883,9 +794,8 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
               }
             }
 
-            box.vertices()[i] = newPos[i];
-            m_tree.vertices()[i*2] = newPos_tree[(i*2)+2];
-            m_tree.vertices()[(i*2)+1] = newPos_tree[(i*2)+3];
+            m_tree.vertices()[i+2] = newPos_tree[i+2];
+            m_tree.vertices()[i+3] = newPos_tree[i+3];
 
             // figuring out angles n stuff to set branch frequencies 
             float randRange = animStep * .2;
@@ -899,12 +809,14 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
             // cout<<"<<"<<endl;
 
             animFinishedCheck++;
+            cout << "anim finished check = " << animFinishedCheck << endl;
+            cout << "num new branches = " << numNewBranches[i] << endl;
+            cout << "" << endl;
 
           }
         }
 
         state->treePos[i] = m_tree.vertices()[i];
-
       }
 
       if (animFinishedCheck == numNewBranches[i]) {
@@ -932,18 +844,14 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     state->cSize = m_tree.colors().size();
 
     maker.set(*state);
-
-    // memcpy(&m_tree.vertices()[0], &state->treePos[0], sizeof(Vec3f) * state->pSize);
-    // memcpy(&m_tree.colors()[0], &state->treeColor[0], sizeof(Color) * state->cSize);
-  
   }
 
 
   virtual void onDraw(Graphics& g, const Viewpoint& v) {
     material();
 
+    // draw groundplane
     if (state->drawGround == true){
-      // draw groundplane
       ground.onDraw(g,v,groundPlane);
     }
 
@@ -959,23 +867,18 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
       // g.pointSize(15);
       // g.draw(m_tap);
 
-      // g.pointSize(5);
-      // g.polygonMode(Graphics::FILL);
-      // m_test.primitive(Graphics::QUADS);
+      // draw test tree
+      g.pointSize(5);
+      g.polygonMode(Graphics::FILL);
+      m_test.primitive(Graphics::QUADS);
       // g.draw(m_test);
     }
 
-    // draw branches
-    if (state->drawBranches == true){
-      box.primitive(Graphics::LINES);
-      g.polygonMode(Graphics::LINE);
-      g.color(branchColor);
-      g.lineWidth(1.f);
-      g.draw(box);
-    }
     // draw "tree"
+    // g.polygonMode(Graphics::POINT);
+    g.polygonMode(Graphics::LINE);
     m_tree.primitive(Graphics::QUADS);
-    g.polygonMode(Graphics::FILL);
+    // g.polygonMode(Graphics::FILL);
     g.draw(m_tree);
 
   }
@@ -1009,8 +912,6 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
           tap[i].writeSample(highPassFilter( s / SOUND_SOURCES ) * state->audioGain );
           carrier[i] = 0.0;
         }
-      
-
     }
 
     // set listener pose and render audio sources
