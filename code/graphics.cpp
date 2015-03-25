@@ -41,7 +41,7 @@ struct Render : OmniStereoGraphicsRenderer {
     // set up leaf geo
     // addSphere(m_leaf, 0.5, 16, 16);
     m_leaf.primitive(Graphics::POINTS);
-    state->currentLeafSize = N;
+    state->currentLeafSize = LEAF_COUNT;
     state->refreshLeaves = 1;
     state->refreshTree = 1;
 
@@ -63,7 +63,7 @@ struct Render : OmniStereoGraphicsRenderer {
     state->cSize = 0;
     state->drawLeaves = true;
     state->drawGround = false;
-    state->currentLeafSize = N;
+    state->currentLeafSize = LEAF_COUNT;
 
     for (int i=0; i<=state->currentLeafSize; i++) {
       m_leaf.vertex(state->leafPos[i]);
