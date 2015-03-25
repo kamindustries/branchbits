@@ -263,7 +263,7 @@ void Grow(State* state){
     // in a separate array at the same index to be used later as an animation target
     //  
     Vec3f crossP;
-    crossP = cross(b.Parent->Position, b.Position) / 2;
+    crossP = cross(b.Parent->Position, b.Position) / 2.0;
 
     m_tree.vertex(b.Parent->Position + crossP * branchLength * branchWidth);
     m_tree.vertex(b.Parent->Position - crossP * branchLength * branchWidth);
