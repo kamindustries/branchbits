@@ -2,8 +2,10 @@
 #include "constants.cpp"
 #include "common.hpp"
 
+map <Vec3f, Branch, compare> branches;
+map<Vec3f, Branch, compare> newBranches;
+
 vector<Branch> branchVec;
-vector<Branch> newBranchesVec;
 
 vector<Leaf> leaves;
 vector<Vec3f> newPos;
@@ -45,22 +47,21 @@ void Trunk(State* state){
   while ((Root.Position - current.Position).mag() < trunkHeight) {
     Branch trunk (current.Parent, current.Position + Root.GrowDir * branchLength, 
                   current.GrowDir, current.GrowCount, current.Skip, current.Width);
-    
-    //vector action
+    branches[trunk.Position] = trunk;
     branchVec.push_back(trunk);
-
+    
     current = trunk;      
   }
 
 
   // put vertex at each trunk pos
-  cout << "trunk size: " << branchVec.size() << endl;
-  for (int i = 0; i < branchVec.size(); i++) {
-    Branch b = branchVec[i];
+  cout << "trunk size: " << branches.size() << endl;
+  typedef map<Vec3f, Branch, compare>::iterator branchIt;
+  for (branchIt iterator = branches.begin(); iterator != branches.end(); iterator++) {
 
-    if (b.Parent != NULL){
-      newPos.push_back(b.Position);
-      newPos.push_back(b.Position);
+    if (iterator->second.Parent != NULL){
+      newPos.push_back(iterator->second.Position);
+      newPos.push_back(iterator->second.Position);
       
       newPosGroup.push_back(growthIteration);
       newPosGroup.push_back(growthIteration);
@@ -72,7 +73,7 @@ void Trunk(State* state){
       numNewBranches.push_back(1);
       numNewBranches.push_back(1);
 
-      m_root.vertex(b.Position);
+      m_root.vertex(iterator->second.Position);
       m_root.color(rootColor);
     }
   }
@@ -95,7 +96,7 @@ void Grow(State* state){
 
 
   // check to see if we should add more leaves
-  ///////////////////////////////////////////////////////////////////////
+  //
   int leavesSkipped = 0;
     for (int i=0; i<state->currentLeafSize; i++) {
       if (state->leafSkip[i] == 1) leavesSkipped++;        
@@ -119,8 +120,8 @@ void Grow(State* state){
   }
 
   // process the leaves
-  ///////////////////////////////////////////////////////////////////////
-  for (int i = 0; i < leaves.size(); i++) {
+  //
+  for (int i=0; i<leaves.size(); i++) {
     if (state->leafSkip[i] == 0) {
 
       vector<Leaf>::iterator leafIt= leaves.begin();
@@ -130,39 +131,37 @@ void Grow(State* state){
       leaves[i].ClosestBranch = NULL;
       Vec3f direction;
 
-      // cout <<"test 1 "<< i <<endl;
-
       // find nearest branch for this leaf
-      ///////////////////////////////////////////////////////////////////////
-      for (int j = 0; j < branchVec.size(); j++) {
-        Branch* b = &branchVec[j];
+      //
+      typedef map<Vec3f, Branch, compare>::iterator branchIt;
+      for (branchIt iterator = branches.begin(); iterator != branches.end(); iterator++) {
 
-        direction = leaves[i].Position - b->Position;
+        direction = leaves[i].Position - iterator->second.Position;
         float distance = direction.mag();
         direction.normalize();
 
         // skip this leaf next time if branches are too close. no more leaf growing!!
-        ///////////////////////////////////////////////////////////////////////
+        //
         if (distance <= minDistance) {
           state->leafSkip[i] = 1;
           break;
         }
     
         // branch is in range, determine if it's the closest
-        ///////////////////////////////////////////////////////////////////////
+        //
         else if (distance <= maxDistance) {
           if (leaves[i].ClosestBranch == NULL) {
-            leaves[i].ClosestBranch = b;
+            leaves[i].ClosestBranch = &iterator->second;
           }
           else if ((leaves[i].Position - leaves[i].ClosestBranch->Position).mag() > distance){
-            leaves[i].ClosestBranch = b;
+            leaves[i].ClosestBranch = &iterator->second;
           }
         }
         
       }
    
       // tell the branch that this leaf would like it to grow, and in what direction
-      ///////////////////////////////////////////////////////////////////////
+      //
       if (state->leafSkip[i] == 0) {
         if (leaves[i].ClosestBranch != NULL) {
           Vec3f dir = leaves[i].Position - leaves[i].ClosestBranch->Position;
@@ -183,28 +182,27 @@ void Grow(State* state){
   ///////////////////////////////////////////////////////////////////////
   // generate new branches
   ///////////////////////////////////////////////////////////////////////
-  newBranchesVec.clear();
+  newBranches.clear();
 
-  for (int i = 0; i < branchVec.size(); i++) {
-    Branch* b = &branchVec[i];
-
-    if (b->Skip == false) {
+  typedef map<Vec3f, Branch, compare>::iterator branchIt;
+  for (branchIt iterator = branches.begin(); iterator != branches.end(); iterator++) {
+    if (iterator->second.Skip == false) {
 
       // if at least one leaf is affecting the branch
-      if (b->GrowCount > 0) {
+      if (iterator->second.GrowCount > 0) {
 
-        Vec3f avgDirection = b->GrowDir / b->GrowCount;
+        Vec3f avgDirection = iterator->second.GrowDir / iterator->second.GrowCount;
         avgDirection.normalize();
         
         // set grow count to 0 so the new branches don't inherit a grow count >0
-        b->Reset();        
+        iterator->second.Reset();        
 
         // create a branch with the new position info
-        Branch newBranch( b, b->Position + avgDirection *
-                          branchLength, avgDirection, b->GrowCount, b->Skip, 
-                          b->Width);
+        Branch newBranch(&iterator->second, iterator->second.Position + avgDirection *
+                          branchLength, avgDirection, iterator->second.GrowCount, iterator->second.Skip, 
+                          iterator->second.Width);
 
-        newBranchesVec.push_back(newBranch);
+        newBranches[newBranch.Position] = newBranch;
 
       }
       
@@ -230,21 +228,19 @@ void Grow(State* state){
     }
 
   }
-  cout << "Number of new branches: " << newBranchesVec.size() << endl;
+  cout << "Number of new branches: " << newBranches.size() << endl;
   
 
   cout << "branch info: " << endl;
-  cout << "branches size: " << branchVec.size() << endl;
+  cout << "branches size: " << branches.size() << endl;
 
   // add new branches to tree
   bool branchAdded = false;
-  for (int i = 0; i < newBranchesVec.size(); i++) {
+  for (branchIt iterator = newBranches.begin(); iterator != newBranches.end(); iterator++) {
     // if (iterator->second.Parent != NULL){
       // ^^^^^ having issues with this
     
-    
-    Branch b = newBranchesVec[i];
-    branchVec.push_back(b);
+    branches[iterator->first] = iterator->second; //add new branch to branches map
     
     // having issues with hitting NULL in trunk...
     // the following is the element of the C# implementation that I want to emulate...
@@ -257,23 +253,23 @@ void Grow(State* state){
     //   }
     // }
 
-    branchVec[i].Width += .001;
+    branches[iterator->first].Width += .001;
   
     // draw two vertices at the parent position (two makes a line), but store the new position 
     // in a separate array at the same index to be used later as an animation target
     //  
     Vec3f crossP;
-    crossP = cross(b.Parent->Position, b.Position) / 2;
+    crossP = cross(iterator->second.Parent->Position, iterator->second.Position) / 2;
 
-    m_tree.vertex(b.Parent->Position + crossP * branchLength * branchWidth);
-    m_tree.vertex(b.Parent->Position - crossP * branchLength * branchWidth);
-    m_tree.vertex(b.Parent->Position - crossP * branchLength * branchWidth);
-    m_tree.vertex(b.Parent->Position + crossP * branchLength * branchWidth);
+    m_tree.vertex(iterator->second.Parent->Position + crossP * branchLength * branchWidth);
+    m_tree.vertex(iterator->second.Parent->Position - crossP * branchLength * branchWidth);
+    m_tree.vertex(iterator->second.Parent->Position - crossP * branchLength * branchWidth);
+    m_tree.vertex(iterator->second.Parent->Position + crossP * branchLength * branchWidth);
 
-    newPos_tree.push_back(b.Position + crossP * branchLength * branchWidth);
-    newPos_tree.push_back(b.Position - crossP * branchLength * branchWidth);
-    newPos_tree.push_back(b.Position - crossP * branchLength * branchWidth);
-    newPos_tree.push_back(b.Position + crossP * branchLength * branchWidth);
+    newPos_tree.push_back(iterator->second.Position + crossP * branchLength * branchWidth);
+    newPos_tree.push_back(iterator->second.Position - crossP * branchLength * branchWidth);
+    newPos_tree.push_back(iterator->second.Position - crossP * branchLength * branchWidth);
+    newPos_tree.push_back(iterator->second.Position + crossP * branchLength * branchWidth);
 
     m_tree.color(treeInitialColor);
     m_tree.color(treeInitialColor);
@@ -289,17 +285,17 @@ void Grow(State* state){
     colorGroup.push_back(RGB(0,0,0));
     
     // the array with new positions
-    newPos.push_back(b.Position);
-    newPos.push_back(b.Position);
+    newPos.push_back(iterator->second.Position);
+    newPos.push_back(iterator->second.Position);
     newPosGroup.push_back(growthIteration);
     newPosGroup.push_back(growthIteration);
     newPosGroup.push_back(growthIteration);
     newPosGroup.push_back(growthIteration);
 
-    numNewBranches.push_back(newBranchesVec.size());
-    numNewBranches.push_back(newBranchesVec.size());
-    numNewBranches.push_back(newBranchesVec.size());
-    numNewBranches.push_back(newBranchesVec.size());
+    numNewBranches.push_back(newBranches.size());
+    numNewBranches.push_back(newBranches.size());
+    numNewBranches.push_back(newBranches.size());
+    numNewBranches.push_back(newBranches.size());
 
     // cout << "branch at " << iterator->first << " width = " << branches[iterator->first].Width << endl;
 
@@ -320,7 +316,7 @@ void Grow(State* state){
     cout << "Done growing!" << endl;
   }
   cout << "Number of leaves: " << leaves.size() << endl;
-  cout << "Number of branches: " << branchVec.size() << endl;
+  cout << "Number of branches: " << branches.size() << endl;
   cout << "Number of vertices: " << m_tree.vertices().size() << endl;
 
   ///////////////////////////////////////////////////////////////////////
@@ -371,5 +367,6 @@ void Grow(State* state){
 
   }
 
+  growthIteration += 1;
 
 }
