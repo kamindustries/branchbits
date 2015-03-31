@@ -12,7 +12,6 @@ using namespace std;
 
 #include "common.hpp"
 
-
 struct Render : OmniStereoGraphicsRenderer {
   cuttlebone::Taker<State, 9000> taker;
   State* state;
@@ -30,7 +29,6 @@ struct Render : OmniStereoGraphicsRenderer {
 
   bool onAnimateCheck;
   bool onDrawCheck;
-
 
   Render() {
     state = new State;

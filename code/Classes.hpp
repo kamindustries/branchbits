@@ -1,5 +1,7 @@
 #pragma once
 
+#include "allocore/io/al_App.hpp"
+
 ///////////////////////////////////////////////////////////////////////
 // B R A N C H   C L A S S
 ///////////////////////////////////////////////////////////////////////
@@ -12,7 +14,6 @@ struct Branch {
   bool Skip;
   float Width;
 
-  Branch(){};
   Branch( Branch* _parent, const Vec3f& _position, const Vec3f& _growDirection, 
           int _growCount, bool _skip, float _width ) {
     Parent = _parent;
@@ -43,12 +44,6 @@ struct Leaf {
   Vec3f location;
   Vec3f circle;
   Vec3f scramble;
-  float r0;
-  float r1;
-  float theta;
-  float phi;
-  float s;
-
 
   Leaf(const Vec3f& _position) {
     Position = _position;
@@ -74,13 +69,14 @@ struct Leaf {
   }
 
   void RandomizeTorus() {
-    r0 = 3.8;
-    r1 = 1.6;
-    theta = (float)rnd::uniform(0.f, 2.f);
+    float r0 = 3.8;
+    float r1 = 1.6;
+    float s = 0.8;
+    float theta = (float)rnd::uniform(0.f, 2.f);
     theta *=  M_PI;
-    phi = (float)rnd::uniform(0.f, 2.f);
+    float phi = (float)rnd::uniform(0.f, 2.f);
     phi *= M_PI;
-    s = .8;
+    
     scramble = Vec3f( (float)rnd::uniform(-s,s),
                       (float)rnd::uniform(-s,s),
                       (float)rnd::uniform(-s,s));
@@ -94,25 +90,21 @@ struct Leaf {
     circle += scramble; 
     circle = Vec3f(circle[0], circle[1], circle[2]);
     Position = circle;
-    }
+  }
 
   void RandomizeTrefoil() {
-    float a, d, p, q;
-    a = 2.f;
-    d = 4.f;
-    p = 2.f;
-    q = 3.f;
-    theta = (float)rnd::uniform(0.f, 2.f);
+    float a = 2.f;
+    float d = 4.f;
+    float p = 2.f;
+    float q = 3.f;
+    float theta = (float)rnd::uniform(0.f, 2.f);
     theta *=  M_PI;
-    phi = (float)rnd::uniform(0.f, 2.f);
+    float phi = (float)rnd::uniform(0.f, 2.f);
     phi *= M_PI;
-    s = .8;
+    float s = .8;
     scramble = Vec3f( (float)rnd::uniform(-s,s),
                       (float)rnd::uniform(-s,s),
                       (float)rnd::uniform(-s,s));
-
-
-
 
     circle = Vec3f( (a * sin(q*theta) + d) * sin(p*theta),
                     (a * sin(q*theta) + d) * cos(p*theta),
@@ -122,6 +114,6 @@ struct Leaf {
     circle += scramble; 
     circle = Vec3f(circle[0], circle[1], circle[2]);
     Position = circle;
-    }
+  }
 
 };

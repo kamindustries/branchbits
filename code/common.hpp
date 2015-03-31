@@ -11,14 +11,6 @@
 #define V 100000       // max number of verts in tree mesh
 #define MAX_LEAVES 20000
 
-// comparator for Vec3f
-// Kee will fix allocore
-struct compare {
-    bool operator() (Vec3f a, Vec3f b) const {
-        return a.mag() < b.mag();
-    }
-};
-
 ///////////////////////////////////////////////////////////////////////
 // S T A T E   C L A S S
 ///////////////////////////////////////////////////////////////////////
@@ -70,5 +62,3 @@ void InitState(State* state){
   state->drawBranches = false;
   state->drawGround = true;
 }
-
-

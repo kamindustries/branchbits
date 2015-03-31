@@ -34,17 +34,14 @@ using namespace std;
 
 // Main app
 struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
-  
   State* state;
   cuttlebone::Maker<State, 9000> maker; 
   Buffer<Mesh::Vertex> oldPos_tree;
-
   Mesh groundPlane;
 
   float time = 0.0;
   float timeMod = 1.4;
   float soundTime = 0;
-
   bool mouseDown;
 
   // thread stuff
@@ -59,34 +56,26 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
   gam::OnePole<> highPassFilter;
   gam::AD<> leafAD;
   gam::AD<> branchAD;
-  gam::Accum<> tmr;     // Timer for resetting envelope
+  gam::Accum<> tmr; // Timer for resetting envelope
 
   Reverb<> reverb[SOUND_SOURCES];
   float carrier[SOUND_SOURCES];
-
   // sound source to represent a sound in space
   SoundSource tap[SOUND_SOURCES];
   SoundSource tapOut;
   int numSoundSources;
   float f[S];
-
   map<int,int> majorScale;
-
-
 
   SpaceCol() :  maker(Simulator::defaultBroadcastIP()),
                 InterfaceServerClient(Simulator::defaultInterfaceServerIP())  {
-    
     cout << "-------------------" << endl;
     cout << "Space Colonization" << endl;
     cout << "-------------------" << endl;
     cout << "" << endl;
 
-
     state = new State;
     memset(state, 0, sizeof(State));
-
-
     // Initialize State parameters
     InitState(state);
     state->pose = nav();
@@ -94,7 +83,6 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     // initial camera position and far clipping plane
     nav().pos(0, 0, 0);
     lens().far(1000);
-    
     initWindow(Window::Dim(0, 0, 600, 400), "Pineal Portal", 60);
 
     ///////////////////////////////////////////////////////////////////////
@@ -105,7 +93,6 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     gam::Sync::master().spu(44100);
     numSoundSources = SOUND_SOURCES;
 
-
     ///////////////////////////////////////////////////////////////////////
     // set up ground plane
     ///////////////////////////////////////////////////////////////////////
@@ -113,11 +100,9 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     groundPlane.generateNormals();
     groundPlane.primitive(Graphics::TRIANGLES);
     
-
     ///////////////////////////////////////////////////////////////////////
     // INITIALIZE LEAVES
     ///////////////////////////////////////////////////////////////////////
-    
     // set up leaf geo
     // m_leaf.primitive(Graphics::POINTS);
     m_leaf.primitive(Graphics::TRIANGLE_STRIP);
@@ -131,7 +116,6 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
       leaves[i].RandomizeTorus();
 
       state->currentLeafSize = LEAF_COUNT;
-
       state->leafPos[i] = leaves[i].Position;
       state->leafColor[i] = leafColorUnhit;
 
@@ -141,25 +125,22 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     state->refreshLeaves = 1;
     state->refreshTree = 1;
 
-
-
-
     ///////////////////////////////////////////////////////////////////////
     // A U D I O   S H I T
     ///////////////////////////////////////////////////////////////////////
+
     // cout << "test: " << AlloSphereAudioSpatializer::audioIO().fps() << endl;
-    cout<< "check" <<endl;
+    //cout<< "check" <<endl;
 
     // set up major scale map
-      majorScale[0] = 0;
-      majorScale[2] = 4;
-      majorScale[5] = 7;
-      majorScale[9] = 11;
-      // modFreq.freq(1.f/20.f);
+    majorScale[0] = 0;
+    majorScale[2] = 4;
+    majorScale[5] = 7;
+    majorScale[9] = 11;
+    // modFreq.freq(1.f/20.f);
 
     highPassFilter.freq(1100);
     tmr.period(1.3);
-
     branchAD.attack(0.02);
     branchAD.decay(1.2);
 
@@ -187,7 +168,7 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
   void startThread(){
     // start compute thread
     static int frame = 0;
-    if (threadDone == true) computeThread.join(); threadDone = false;
+    if (threadDone == true) computeThread.join(); threadDone = false; // [!] no curly braces? **********
     LOG("compute cycle %d", frame);
     frame++;
 
@@ -205,7 +186,6 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
 
 
   virtual void onAnimate(double dt) {
-
     float safeToAnimate;
     safeToAnimate = 1.f;
 
@@ -243,7 +223,6 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     time += dt;
     int majorsc;
     float mag;
-
 
     // animate based on two points starting in the same position. we will move one of them
     // to its new position to form a branch.

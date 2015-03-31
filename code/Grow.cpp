@@ -78,7 +78,6 @@ void Trunk(State* state){
   }
 
   state->pSize = m_root.vertices().size();
-
 }
 
 
@@ -87,12 +86,10 @@ void Trunk(State* state){
 ///////////////////////////////////////////////////////////////////////
 
 void Grow(State* state){
-
   cout << "" << endl;
   cout << "" << endl;
-  cout << "Iteration # " << growthIteration << endl;
+  cout << "Iteration #" << growthIteration << endl;
   cout << "------------" << endl;
-
 
   // check to see if we should add more leaves
   ///////////////////////////////////////////////////////////////////////
@@ -104,7 +101,7 @@ void Grow(State* state){
     cout << "leaves size: " << state->currentLeafSize << endl;
     cout << "" << endl;
 
-  if (leavesSkipped >= state->currentLeafSize * .9 && dynamicLeaves == false) {
+  if (leavesSkipped >= state->currentLeafSize * 0.9 && dynamicLeaves == false) {
     
     animPrepareToStop = true;
     animStopOnStep = growthIteration;
@@ -112,7 +109,7 @@ void Grow(State* state){
     cout << "<<" << endl;
     cout << "~~~~~~~~~Done growing!!!" << endl;
     cout << "~~~~~~~~~Preparing to stop animating!" << endl;
-    cout << "~~~~~~~~~Iteration #: " << growthIteration << endl;
+    cout << "~~~~~~~~~Iteration #" << growthIteration << endl;
     cout << "<<" << endl;
 
     return;
@@ -180,6 +177,7 @@ void Grow(State* state){
   // Done processing leaves.
   ///////////////////////////////////////////////////////////////////////
 
+
   ///////////////////////////////////////////////////////////////////////
   // generate new branches
   ///////////////////////////////////////////////////////////////////////
@@ -231,7 +229,6 @@ void Grow(State* state){
 
   }
   cout << "Number of new branches: " << newBranchesVec.size() << endl;
-  
 
   cout << "branch info: " << endl;
   cout << "branches size: " << branchVec.size() << endl;
@@ -241,7 +238,11 @@ void Grow(State* state){
   for (int i = 0; i < newBranchesVec.size(); i++) {
     // if (iterator->second.Parent != NULL){
       // ^^^^^ having issues with this
-    
+
+    /*
+    Branch& b = newBranchesVec[i];
+    if (b.Parent == NULL) continue;
+    */
     
     Branch b = newBranchesVec[i];
     branchVec.push_back(b);
@@ -256,6 +257,9 @@ void Grow(State* state){
     //     p = next;
     //   }
     // }
+
+    // Kee: next is lost when we enter next while excution because it's local **********
+    //      and p? is it b?
 
     branchVec[i].Width += .001;
   
@@ -305,15 +309,13 @@ void Grow(State* state){
 
     branchAdded = true;
     
-    // }
-    
-    }
+  }
 
-    // cout << "**************************************" << endl;
-    // cout << "BRANCHES VERTEX INFO:" << endl;
-    // for (int i = 0; i < m_tree.vertices().size(); i+=1) {
-    //   cout << "vertex " << i << ": " << m_tree.vertices()[i] << endl;
-    // }
+  // cout << "**************************************" << endl;
+  // cout << "BRANCHES VERTEX INFO:" << endl;
+  // for (int i = 0; i < m_tree.vertices().size(); i+=1) {
+  //   cout << "vertex " << i << ": " << m_tree.vertices()[i] << endl;
+  // }
 
   if (branchAdded == false) {
     doneGrowing = true;
@@ -333,19 +335,12 @@ void Grow(State* state){
       // widthGroup acts as a timer for when the branch will stop getting thicker
       widthGroup[i] += widthIncrement;
 
-      Vec3f move;
-      Vec3f move2;
-      Vec3f vertAhead;
-      Vec3f vertBehind;
-      Vec3f vertOrig;
-      Vec3f vertNew;
-
-      vertOrig = m_tree.vertices()[i];
-      vertNew = newPos_tree[i];
-      vertAhead = m_tree.vertices()[i+1];
-      vertBehind = m_tree.vertices()[i-1];
-      move = m_tree.vertices()[i] - vertAhead;
-      move2 = m_tree.vertices()[i] - vertBehind;
+      Vec3f move = m_tree.vertices()[i] - vertAhead;
+      Vec3f move2 = m_tree.vertices()[i] - vertBehind;
+      Vec3f vertAhead = m_tree.vertices()[i+1];
+      Vec3f vertBehind = m_tree.vertices()[i-1];
+      Vec3f vertOrig = m_tree.vertices()[i];
+      Vec3f vertNew = newPos_tree[i];
 
       // scale width by widthIncrement, also update newPos vector accordingly to be used by anim
       if (i%2==0) {
