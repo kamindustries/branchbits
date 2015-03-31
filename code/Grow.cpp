@@ -33,25 +33,18 @@ int animStopOnStep = 0;
 // T R U N K
 ///////////////////////////////////////////////////////////////////////
 void Trunk(State* state){
-
-  // root branch
   Branch Root(NULL, rootPosition, Vec3f(0,1,0), 0, false, branchWidth);
+  // [?] Root not pushed to our list? trunks will lost their parent! **********************
   
   // growing branch
-  Branch current  ( &Root, rootPosition + Root.GrowDir * branchLength, Root.GrowDir, 
-                    Root.GrowCount, Root.Skip, Root.Width);
+  Branch current(&Root, Root.Position + Root.GrowDir * branchLength);
 
   // stack branches vertically until trunkHeight is reached
   while ((Root.Position - current.Position).mag() < trunkHeight) {
-    Branch trunk (current.Parent, current.Position + Root.GrowDir * branchLength, 
-                  current.GrowDir, current.GrowCount, current.Skip, current.Width);
-    
-    //vector action
+    Branch trunk(current.Parent, current.Position + Root.GrowDir * branchLength);
     branchVec.push_back(trunk);
-
     current = trunk;      
   }
-
 
   // put vertex at each trunk pos
   cout << "trunk size: " << branchVec.size() << endl;
@@ -80,11 +73,9 @@ void Trunk(State* state){
   state->pSize = m_root.vertices().size();
 }
 
-
 ///////////////////////////////////////////////////////////////////////
 // GROW
 ///////////////////////////////////////////////////////////////////////
-
 void Grow(State* state){
   cout << "" << endl;
   cout << "" << endl;
@@ -94,15 +85,15 @@ void Grow(State* state){
   // check to see if we should add more leaves
   ///////////////////////////////////////////////////////////////////////
   int leavesSkipped = 0;
-    for (int i=0; i<state->currentLeafSize; i++) {
-      if (state->leafSkip[i] == 1) leavesSkipped++;        
-    }
-    cout << "num leaves skipped: " << leavesSkipped << endl;
-    cout << "leaves size: " << state->currentLeafSize << endl;
-    cout << "" << endl;
+  for (int i=0; i<state->currentLeafSize; i++) {
+    if (state->leafSkip[i] == 1) leavesSkipped++;
+  }
+  cout << "num leaves skipped: " << leavesSkipped << endl;
+  cout << "leaves size: " << state->currentLeafSize << endl;
+  cout << "" << endl;
 
+  // to stop grow
   if (leavesSkipped >= state->currentLeafSize * 0.9 && dynamicLeaves == false) {
-    
     animPrepareToStop = true;
     animStopOnStep = growthIteration;
 
@@ -111,66 +102,47 @@ void Grow(State* state){
     cout << "~~~~~~~~~Preparing to stop animating!" << endl;
     cout << "~~~~~~~~~Iteration #" << growthIteration << endl;
     cout << "<<" << endl;
-
     return;
   }
 
   // process the leaves
   ///////////////////////////////////////////////////////////////////////
   for (int i = 0; i < leaves.size(); i++) {
-    if (state->leafSkip[i] == 0) {
+    if (state->leafSkip[i] != 0) continue;
 
-      vector<Leaf>::iterator leafIt= leaves.begin();
-      advance(leafIt, i);
+    leaves[i].ClosestBranch = NULL;
+    float min_dist = maxDistance; // start with max dist, save anything closer
+    Vec3f min_dir = Vec3f(0, 0, 0);
 
-      // bool leafRemoved = false;
-      leaves[i].ClosestBranch = NULL;
-      Vec3f direction;
+    // find nearest branch for this leaf
+    ///////////////////////////////////////////////////////////////////////
+    for (int j = 0; j < branchVec.size(); j++) {
+      Branch* b = &branchVec[j];
+      Vec3f direction = leaves[i].Position - b->Position;
+      float distance = direction.mag();
 
-      // cout <<"test 1 "<< i <<endl;
-
-      // find nearest branch for this leaf
+      // skip this leaf next time if branches are too close. no more leaf growing!!
       ///////////////////////////////////////////////////////////////////////
-      for (int j = 0; j < branchVec.size(); j++) {
-        Branch* b = &branchVec[j];
-
-        direction = leaves[i].Position - b->Position;
-        float distance = direction.mag();
-        direction.normalize();
-
-        // skip this leaf next time if branches are too close. no more leaf growing!!
-        ///////////////////////////////////////////////////////////////////////
-        if (distance <= minDistance) {
-          state->leafSkip[i] = 1;
-          break;
-        }
-    
-        // branch is in range, determine if it's the closest
-        ///////////////////////////////////////////////////////////////////////
-        else if (distance <= maxDistance) {
-          if (leaves[i].ClosestBranch == NULL) {
-            leaves[i].ClosestBranch = b;
-          }
-          else if ((leaves[i].Position - leaves[i].ClosestBranch->Position).mag() > distance){
-            leaves[i].ClosestBranch = b;
-          }
-        }
-        
+      if (distance <= minDistance) {
+        state->leafSkip[i] = 1;
+        break;
       }
-   
-      // tell the branch that this leaf would like it to grow, and in what direction
+  
+      // branch is in range, determine if it's the closest
       ///////////////////////////////////////////////////////////////////////
-      if (state->leafSkip[i] == 0) {
-        if (leaves[i].ClosestBranch != NULL) {
-          Vec3f dir = leaves[i].Position - leaves[i].ClosestBranch->Position;
-          Vec3f dirNorm = dir.normalize();
-         if (dir.mag() <= maxDistance) {
-            leaves[i].ClosestBranch->GrowDir += dirNorm;
-            leaves[i].ClosestBranch->GrowCount += 1;
-          }
-        }
+      if (distance <= min_dist) {
+        leaves[i].ClosestBranch = b;
+        min_dist = distance;
+        min_dir = direction;
       }
-
+    }
+ 
+    // tell the branch that this leaf would like it to grow, and in what direction
+    ///////////////////////////////////////////////////////////////////////
+    if (state->leafSkip[i] == 0 && leaves[i].ClosestBranch != NULL) {
+      Vec3f dirNorm = min_dir.normalize();
+      leaves[i].ClosestBranch->GrowDir += dirNorm;
+      leaves[i].ClosestBranch->GrowCount += 1;
     }
   }
   ///////////////////////////////////////////////////////////////////////
@@ -185,51 +157,42 @@ void Grow(State* state){
 
   for (int i = 0; i < branchVec.size(); i++) {
     Branch* b = &branchVec[i];
+    if (b->Skip) continue;
 
-    if (b->Skip == false) {
-
-      // if at least one leaf is affecting the branch
-      if (b->GrowCount > 0) {
-
-        Vec3f avgDirection = b->GrowDir / b->GrowCount;
-        avgDirection.normalize();
-        
-        // set grow count to 0 so the new branches don't inherit a grow count >0
-        b->Reset();        
-
-        // create a branch with the new position info
-        Branch newBranch( b, b->Position + avgDirection *
-                          branchLength, avgDirection, b->GrowCount, b->Skip, 
-                          b->Width);
-
-        newBranchesVec.push_back(newBranch);
-
-      }
+    // if at least one leaf is affecting the branch
+    if (b->GrowCount > 0) {
+      Vec3f avgDirection = b->GrowDir / b->GrowCount;
+      avgDirection.normalize();
       
-      // attempting to throw out branches if most leaves are too far away, but not sure if this is
-      // just making it slower. i can't do it on the first leaf loop because throwing out a branch
-      // there would be too premature
-      //
-      // float keep = 0.f;
-      // if (branches.size() / leaves.size() >= 1.f) {
-      //   for (int i=0; i<leaves.size(); i++) {
-      //     Vec3f direction = iterator->second.Position - leaves[i].Position ;
-      //     if (direction.mag() <= maxDistance) {
-      //       keep += 1.f;
-      //     }
-      //   }
-      //   if (keep <= (float)leaves.size() * .05) {
-      //     // cout << "************************** BRANCH SKIPPED~ " << endl;
-      //     // cout << "************************** keep #: " << keep << endl;
-      //     iterator->second.Skip = 1;
-      //   }
-      // }
+      // set grow count to 0 so the new branches don't inherit a grow count > 0
+      b->Reset(); // setting also the parent's growcount to 0? ***************************
 
+      // create a branch with the new position info
+      Branch newBranch( b, b->Position + avgDirection * branchLength, avgDirection);
+      newBranchesVec.push_back(newBranch);
     }
-
+    
+    // attempting to throw out branches if most leaves are too far away, but not sure if this is
+    // just making it slower. i can't do it on the first leaf loop because throwing out a branch
+    // there would be too premature
+    //
+    // float keep = 0.f;
+    // if (branches.size() / leaves.size() >= 1.f) {
+    //   for (int i=0; i<leaves.size(); i++) {
+    //     Vec3f direction = iterator->second.Position - leaves[i].Position ;
+    //     if (direction.mag() <= maxDistance) {
+    //       keep += 1.f;
+    //     }
+    //   }
+    //   if (keep <= (float)leaves.size() * .05) {
+    //     // cout << "************************** BRANCH SKIPPED~ " << endl;
+    //     // cout << "************************** keep #: " << keep << endl;
+    //     iterator->second.Skip = 1;
+    //   }
+    // }
   }
-  cout << "Number of new branches: " << newBranchesVec.size() << endl;
 
+  cout << "Number of new branches: " << newBranchesVec.size() << endl;
   cout << "branch info: " << endl;
   cout << "branches size: " << branchVec.size() << endl;
 
@@ -238,15 +201,13 @@ void Grow(State* state){
   for (int i = 0; i < newBranchesVec.size(); i++) {
     // if (iterator->second.Parent != NULL){
       // ^^^^^ having issues with this
-
-    /*
-    Branch& b = newBranchesVec[i];
-    if (b.Parent == NULL) continue;
-    */
     
     Branch b = newBranchesVec[i];
     branchVec.push_back(b);
     
+    // Kee: maybe cuz we lost the root? **************************************************
+    // exactly what kind of issues??
+
     // having issues with hitting NULL in trunk...
     // the following is the element of the C# implementation that I want to emulate...
     //
@@ -257,9 +218,6 @@ void Grow(State* state){
     //     p = next;
     //   }
     // }
-
-    // Kee: next is lost when we enter next while excution because it's local **********
-    //      and p? is it b?
 
     branchVec[i].Width += .001;
   
@@ -308,7 +266,6 @@ void Grow(State* state){
     // cout << "branch at " << iterator->first << " width = " << branches[iterator->first].Width << endl;
 
     branchAdded = true;
-    
   }
 
   // cout << "**************************************" << endl;
@@ -335,12 +292,12 @@ void Grow(State* state){
       // widthGroup acts as a timer for when the branch will stop getting thicker
       widthGroup[i] += widthIncrement;
 
-      Vec3f move = m_tree.vertices()[i] - vertAhead;
-      Vec3f move2 = m_tree.vertices()[i] - vertBehind;
       Vec3f vertAhead = m_tree.vertices()[i+1];
       Vec3f vertBehind = m_tree.vertices()[i-1];
       Vec3f vertOrig = m_tree.vertices()[i];
       Vec3f vertNew = newPos_tree[i];
+      Vec3f move2 = m_tree.vertices()[i] - vertBehind;
+      Vec3f move = m_tree.vertices()[i] - vertAhead;
 
       // scale width by widthIncrement, also update newPos vector accordingly to be used by anim
       if (i%2==0) {

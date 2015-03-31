@@ -14,6 +14,36 @@ struct Branch {
   bool Skip;
   float Width;
 
+  Branch(Branch* p) {
+    Parent = p;
+    Position = p->Position;
+    GrowDir = p->GrowDir;
+    OrigGrowDir = p->OrigGrowDir;
+    GrowCount = p->GrowCount;
+    Skip = p->Skip;
+    Width = p->Width;
+  }
+
+  Branch(Branch* p, const Vec3f& _position) {
+    Parent = p;
+    Position = _position;
+    GrowDir = p->GrowDir;
+    OrigGrowDir = p->OrigGrowDir;
+    GrowCount = p->GrowCount;
+    Skip = p->Skip;
+    Width = p->Width;
+  }
+
+  Branch(Branch* p, const Vec3f& _position, const Vec3f& _growDirection) {
+    Parent = p;
+    Position = _position;
+    GrowDir = _growDirection;
+    OrigGrowDir = _growDirection;
+    GrowCount = p->GrowCount;
+    Skip = p->Skip;
+    Width = p->Width;
+  }
+
   Branch( Branch* _parent, const Vec3f& _position, const Vec3f& _growDirection, 
           int _growCount, bool _skip, float _width ) {
     Parent = _parent;
