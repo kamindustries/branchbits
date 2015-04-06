@@ -2,6 +2,9 @@
 
 #include "allocore/io/al_App.hpp"
 
+using namespace al;
+using namespace std;
+
 const int numNewLeaves = 3;
 const float newLeafRadius = .2;
 const float treeWidth = 1.5;    

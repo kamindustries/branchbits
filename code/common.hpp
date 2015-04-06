@@ -1,14 +1,13 @@
 #pragma once
 
 #include "allocore/io/al_App.hpp"
-#include "allocore/io/al_Window.hpp"
-#include <Gamma/Oscillator.h>
 
-#define LEAF_COUNT 2200         // number of leaves
-#define STEPS 30      // number of iterations
-#define S 20         // number of sine waves
-#define SOUND_SOURCES 4    // number of sound sources
-#define V 100000       // max number of verts in tree mesh
+using namespace al;
+using namespace std;
+
+#define LEAF_COUNT 2200  // number of leaves
+#define STEPS 30         // number of iterations
+#define NUM_VTX 100000         // max number of verts in tree mesh
 #define MAX_LEAVES 20000
 
 ///////////////////////////////////////////////////////////////////////
@@ -34,8 +33,8 @@ struct State {
   int refreshTree;
 
   // treePos is main thing being drawn in graphics.cpp
-  Vec3f treePos[V];             //600000
-  Color treeColor[V];           //600000
+  Vec3f treePos[NUM_VTX];             //600000
+  Color treeColor[NUM_VTX];           //600000
   int pSize;                    
   int cSize;
 

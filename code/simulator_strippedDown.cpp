@@ -7,65 +7,40 @@
 
 */
 
+#include <iostream>
+#include <math.h>
+#include <thread>
+#include <map>
+
 #include "allocore/io/al_App.hpp"
-#include "allocore/graphics/al_Mesh.hpp"
-#include "allocore/sound/al_reverb.hpp"
 #include "Cuttlebone/Cuttlebone.hpp"
 #include "alloutil/al_Simulator.hpp"
+#include "allocore/graphics/al_Mesh.hpp"
 #include "alloutil/al_AlloSphereAudioSpatializer.hpp"
-#include <Gamma/Noise.h>
-#include <Gamma/Oscillator.h>
-#include <Gamma/Envelope.h>
-#include <Gamma/Filter.h>
-#include <Gamma/Delay.h>
-#include <vector>    
-#include <iostream>  
-#include <math.h>
-#include <map>
-#include <iterator>
-#include <thread>
+
+#include "common.hpp"
+#include "Grow.hpp"
+#include "audio.hpp"
 
 using namespace al;
 using namespace std;
 
-#include "common.hpp"
-#include "constants.cpp"
-#include "Grow.cpp"
-
 // Main app
 struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
   State* state;
-  cuttlebone::Maker<State, 9000> maker; 
+  cuttlebone::Maker<State, 9000> maker;
+
+  Mesh m_leaf;
+  Mesh m_test;
   Buffer<Mesh::Vertex> oldPos_tree;
   Mesh groundPlane;
 
   float time = 0.0;
   float timeMod = 1.4;
-  float soundTime = 0;
-  bool mouseDown;
 
   // thread stuff
   thread computeThread;
   bool threadDone = false;
-
-  // Sound stuff
-  gam::Sine<> sine[S];
-  gam::Sine<> leafWave[S];
-  gam::LFO<> dtLFO;
-  gam::Delay<> echo[SOUND_SOURCES];
-  gam::OnePole<> highPassFilter;
-  gam::AD<> leafAD;
-  gam::AD<> branchAD;
-  gam::Accum<> tmr; // Timer for resetting envelope
-
-  Reverb<> reverb[SOUND_SOURCES];
-  float carrier[SOUND_SOURCES];
-  // sound source to represent a sound in space
-  SoundSource tap[SOUND_SOURCES];
-  SoundSource tapOut;
-  int numSoundSources;
-  float f[S];
-  map<int,int> majorScale;
 
   SpaceCol() :  maker(Simulator::defaultBroadcastIP()),
                 InterfaceServerClient(Simulator::defaultInterfaceServerIP())  {
@@ -86,14 +61,6 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     initWindow(Window::Dim(0, 0, 600, 400), "Pineal Portal", 60);
 
     ///////////////////////////////////////////////////////////////////////
-    // init audio and ambisonic spatialization
-    ///////////////////////////////////////////////////////////////////////
-    AlloSphereAudioSpatializer::initAudio();
-    AlloSphereAudioSpatializer::initSpatialization();
-    gam::Sync::master().spu(44100);
-    numSoundSources = SOUND_SOURCES;
-
-    ///////////////////////////////////////////////////////////////////////
     // set up ground plane
     ///////////////////////////////////////////////////////////////////////
     addSurface(groundPlane, 100, 100, 100, 100);
@@ -111,6 +78,7 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     for (int i=0; i<MAX_LEAVES; i++) {
       state->leafSkip[i] = 0;
     }
+
     for (int i=0; i<LEAF_COUNT; i++){
       leaves.push_back(Vec3f(0,0,0));        
       leaves[i].RandomizeTorus();
@@ -122,72 +90,37 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
       m_leaf.vertex(state->leafPos[i]);
       m_leaf.color(state->leafColor[i]);      
     }
+
     state->refreshLeaves = 1;
     state->refreshTree = 1;
 
     ///////////////////////////////////////////////////////////////////////
     // A U D I O   S H I T
     ///////////////////////////////////////////////////////////////////////
-
-    // cout << "test: " << AlloSphereAudioSpatializer::audioIO().fps() << endl;
-    //cout<< "check" <<endl;
-
-    // set up major scale map
-    majorScale[0] = 0;
-    majorScale[2] = 4;
-    majorScale[5] = 7;
-    majorScale[9] = 11;
-    // modFreq.freq(1.f/20.f);
-
-    highPassFilter.freq(1100);
-    tmr.period(1.3);
-    branchAD.attack(0.02);
-    branchAD.decay(1.2);
-
-    // add our sound source to the audio scene
+    AlloSphereAudioSpatializer::initAudio();
+    AlloSphereAudioSpatializer::initSpatialization();
+    gam::Sync::master().spu(44100);
+    audioSetup();
     for (int i = 0; i<numSoundSources; i++) {
-      tap[i].pose(Pose(Vec3f( 4 * cos(M_PI*(i+1)/(numSoundSources)), 0, 
-                              4 * sin(M_PI*(i+1)/(numSoundSources)) ), Quatf()));
       scene()->addSource(tap[i]);
-      carrier[i] = 0.f;
-      m_tap.vertex(Vec3f( 4 * cos( 2.f * 3.1415 * ((float)i/numSoundSources) ), 0, 
-                          4 * sin( 2.f * 3.1415 * ((float)i/numSoundSources) ) ));
-      m_tap.color(RGB(1,0,0));
-      echo[i].maxDelay(.7);
-      echo[i].delay(.7);
     }
-
-    for (int i=0; i<S; i++) {
-      sine[i].freq(440);
-      leafWave[i].freq(0);
-    }
-
   }
   
-
-  void startThread(){
-    // start compute thread
-    static int frame = 0;
-    if (threadDone == true) computeThread.join(); threadDone = false; // [!] no curly braces? **********
-    LOG("compute cycle %d", frame);
-    frame++;
-
-    computeThread = thread( [&]() {
+  
+  void startThread() {
+    computeThread = thread([&]() {
       while (threadDone == false ) {
         //growth iteration running away from anim step
         if (animStep >= growthIteration - growthBufferSteps) {
             Grow(state);
-            growthIteration++;
-            oldPos_tree = m_tree.vertices();
+            oldPos_tree = m_tree.vertices(); // tree from last grow?
         }
       }
-    } );
+    });
   }
 
-
   virtual void onAnimate(double dt) {
-    float safeToAnimate;
-    safeToAnimate = 1.f;
+    float safeToAnimate = 1.f;
 
     // if growing is done, message is sent to stop
     if (animPrepareToStop == true && animStep >= animStopOnStep - 1) {
@@ -221,14 +154,14 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
 
     if (time < 0) time = 0;
     time += dt;
-    int majorsc;
-    float mag;
 
     // animate based on two points starting in the same position. we will move one of them
     // to its new position to form a branch.
     //
     for (int i = 0; i < m_tree.vertices().size(); i+=4) {
-      if (newPosGroup[i] == animStep) {     // if growth iteration of branch group matches animation step
+      // if growth iteration of branch group matches animation step
+      if (branchVec[i/4].group == animStep) {
+        // because group was push four times per branch to newPos_tree
 
         // do the animation
         if (m_tree.vertices()[i+2] != newPos_tree[i+2]) {          
@@ -242,7 +175,8 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
 
             // check if close enough to a leaf to change its color
             for (int j=0; j<leaves.size(); j++){
-              Vec3f direction = leaves[j].Position - newPos[i];
+              Vec3f direction = leaves[j].Position - branchVec[i/2].Position;
+              // because pos was push twice per branch to newPos
               float distance = direction.mag();
 
               if (distance <= minDistance) {
@@ -250,17 +184,7 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
                 state->refreshLeaves = 1;
 
                 // set freqency of this leaf's sine wave
-                leafWave[j%S].freq(220 * (j%S + 1.f * 0.5));
-
-                // reset leaf frequencies to 0 if too many are pinging
-                int leafWaveCheck = 0;
-                for (int i=0; i<S; i++){
-                  if (leafWave[i].freq() > 0) leafWaveCheck++;
-                }
-                if (leafWaveCheck >= S / 2) {
-                  for (int i=0; i<S; i++) leafWave[i].freq(0.0);
-                }
-
+                setLeafFreq(j);
               }
             }
 
@@ -269,9 +193,9 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
 
             // figuring out angles n stuff to set branch frequencies 
             float randRange = animStep * .2;
-
-            sine[i%S].freq    ( 100 + animStep * (float)rnd::uniform(1.0f,(float)numNewBranches[i] / 4) );
-            sine[(i+1)%S].freq( 100 + animStep * (float)rnd::uniform(1.0f,(float)numNewBranches[i] / 4) );
+            sine[i%NUM_SINE].freq    ( 100 + animStep * rnd::uniform(1.0f, branchVec[i/4].siblings / 4.0f) );
+            sine[(i+1)%NUM_SINE].freq( 100 + animStep * rnd::uniform(1.0f, branchVec[i/4].siblings / 4.0f) );
+            // because numNewBranches was pushed four times per branch
             
             float p = (float)rnd::uniform( (60/animStep) + .2, 80/animStep + .5);
             tmr.period(p);
@@ -280,42 +204,36 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
 
             animFinishedCheck++;
             cout << "anim finished check = " << animFinishedCheck << endl;
-            cout << "num new branches = " << numNewBranches[i] << endl;
+            cout << "num new branches = " << branchVec[i/4].siblings << endl;
             cout << "" << endl;
-
           }
         }
 
         state->treePos[i] = m_tree.vertices()[i];
       }
 
-      if (animFinishedCheck == numNewBranches[i]) {
+      if (branchVec[i/4].siblings == animFinishedCheck) {
         if (animStep < growthIteration - 5) {
           time = 0;
-
           animFinishedCheck = 0;
-
           animStep++;
           cout << "Anim step: " << animStep << endl;
-
         }
       }
-
     }
 
     for (int i=0; i<m_tree.vertices().size(); i++){
       state->treePos[i] = m_tree.vertices()[i];
       state->treeColor[i] = m_tree.colors()[i];
     }
+
     state->t += dt;
     state->n++;
     state->pose = nav();
     state->pSize = m_tree.vertices().size();
     state->cSize = m_tree.colors().size();
-
     maker.set(*state);
   }
-
 
   virtual void onDraw(Graphics& g, const Viewpoint& v) {
 
@@ -355,46 +273,20 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     m_tree.primitive(Graphics::QUADS);
     // g.polygonMode(Graphics::FILL);
     g.draw(m_tree);
-
   }
-
   
   virtual void onSound(AudioIOData& io) {
     static cuttlebone::Stats fps("onSound()");
     fps(io.secondsPerBuffer());
 
     while (io()) {
-
-      if (tmr()){
-        soundTime += 0.01; if(soundTime>1) soundTime = 0;
-        branchAD.lengths(soundTime, 1-soundTime);
-        leafAD.lengths(soundTime*2.f, 1-soundTime*2.f);
-
-        branchAD.reset();
-        leafAD.reset();
-      }
-        for (int i=0; i<S; i++) {
-          // carrier[i%numSoundSources] += ((sine[i]() * branchAD()) + (leafWave[i]() * leafAD()) * 0.4) / S;
-          carrier[i%numSoundSources] += ((sine[i]() * branchAD())) / numSoundSources;
-        }
-
-        for (int i=0; i<numSoundSources; i++) {
-          float s = carrier[i] ;
-          float s_reverb;
-          reverb[i].damping(.2);
-          reverb[i].mix(s, s_reverb, .8);
-          // tap[i].writeSample(highPassFilter( s + 0.5 * echo[i](s + echo[i]() * .05 ) / SOUND_SOURCES ));
-          tap[i].writeSample(highPassFilter( s / SOUND_SOURCES ) * state->audioGain );
-          carrier[i] = 0.0;
-        }
+      updateAudio(state->audioGain);
     }
 
     // set listener pose and render audio sources
     listener()->pose(state->pose);
     scene()->render(io);
   }
-
-
 
   virtual void onKeyDown(const ViewpointWindow&, const Keyboard& k){
     
@@ -429,7 +321,6 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
       state->print();
     }
   }
-
 };
 
 int main() {

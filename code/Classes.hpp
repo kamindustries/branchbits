@@ -2,17 +2,23 @@
 
 #include "allocore/io/al_App.hpp"
 
+using namespace al;
+using namespace std;
+
 ///////////////////////////////////////////////////////////////////////
 // B R A N C H   C L A S S
 ///////////////////////////////////////////////////////////////////////
 struct Branch {
   Branch* Parent;
-  int GrowCount;
+  int GrowCount; // to avg grow dirs to leaves
   Vec3f Position;
   Vec3f GrowDir;
   Vec3f OrigGrowDir;
   bool Skip;
   float Width;
+
+  int group = 0; // growthIteration, which was stored in newPosGroup. could be used as generation
+  int siblings = 0; // newBranchesVec.size(), which was stored in numNewBranches
 
   Branch(Branch* p) {
     Parent = p;

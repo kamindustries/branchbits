@@ -1,23 +1,46 @@
+#pragma once
+
+#include <vector>
+
+#include "allocore/io/al_App.hpp"
+#include "allocore/graphics/al_Mesh.hpp"
+
 #include "Classes.hpp"
-#include "constants.cpp"
-#include "common.hpp"
+
+// #include "constants.hpp"
+
+using namespace al;
+using namespace std;
+
+const int numNewLeaves = 3;
+const float newLeafRadius = .2;
+const float treeWidth = 1.5;    
+const float treeHeight = 2.5;   
+const float trunkHeight = 1.2;
+const float minDistance = .13;
+const float maxDistance = 2.f;
+const float branchLength = .1;
+const float branchWidth = .2;
+const float maxWidthIncrement = 100.f;
+const float widthIncrement = .15;
+const int growthBufferSteps = 15;
+const Color treeInitialColor = RGB(0,0,.6);
+const Color treeIncrementColor = RGB(0.01,.02,0);
+const Vec3f rootPosition = Vec3f(0,0,-4);
+const Color branchColor = RGB(1,1,1);
+const Color rootColor = HSV(.2,.5,.35);
+const Color leafColorUnhit = HSV(.35,.6,.35);
+const Color leafColorHit = HSV(.35,.9,.8);
+const Color groundColor = HSV(.3,.1,.15);
 
 vector<Branch> branchVec;
 vector<Branch> newBranchesVec;
 
 vector<Leaf> leaves;
-vector<Vec3f> newPos;
-vector<int> newPosGroup;
-vector<int> numNewBranches;
-vector<float> widthGroup;
-vector<Color> colorGroup;
 vector<Vec3f> newPos_tree;
 
 Mesh m_root;
-Mesh m_leaf;
-Mesh m_tap; 
 Mesh m_tree;
-Mesh m_test;
 
 bool dynamicLeaves = false;
 bool doneGrowing = false;
@@ -29,41 +52,29 @@ int animToggle = 0;
 int animFinishedCheck = 0;
 int animStopOnStep = 0;
 
+// simple solution for not losing Root. make it global.
+Branch Root(NULL, rootPosition, Vec3f(0,1,0), 0, false, branchWidth); 
+
 ///////////////////////////////////////////////////////////////////////
 // T R U N K
 ///////////////////////////////////////////////////////////////////////
 void Trunk(State* state){
-  Branch Root(NULL, rootPosition, Vec3f(0,1,0), 0, false, branchWidth);
-  // [?] Root not pushed to our list? trunks will lost their parent! **********************
-  
-  // growing branch
-  Branch current(&Root, Root.Position + Root.GrowDir * branchLength);
-
   // stack branches vertically until trunkHeight is reached
+  Branch current(&Root, Root.Position + Root.GrowDir * branchLength);
   while ((Root.Position - current.Position).mag() < trunkHeight) {
     Branch trunk(current.Parent, current.Position + Root.GrowDir * branchLength);
     branchVec.push_back(trunk);
-    current = trunk;      
+    current = trunk;
   }
 
   // put vertex at each trunk pos
   cout << "trunk size: " << branchVec.size() << endl;
   for (int i = 0; i < branchVec.size(); i++) {
-    Branch b = branchVec[i];
+    Branch& b = branchVec[i];
 
     if (b.Parent != NULL){
-      newPos.push_back(b.Position);
-      newPos.push_back(b.Position);
-      
-      newPosGroup.push_back(growthIteration);
-      newPosGroup.push_back(growthIteration);
-      newPosGroup.push_back(growthIteration);
-      newPosGroup.push_back(growthIteration);
-      
-      numNewBranches.push_back(1);
-      numNewBranches.push_back(1);
-      numNewBranches.push_back(1);
-      numNewBranches.push_back(1);
+      b.group =  growthIteration;
+      b.siblings = 1;
 
       m_root.vertex(b.Position);
       m_root.color(rootColor);
@@ -111,7 +122,7 @@ void Grow(State* state){
     if (state->leafSkip[i] != 0) continue;
 
     leaves[i].ClosestBranch = NULL;
-    float min_dist = maxDistance; // start with max dist, save anything closer
+    float curr_min_dist = maxDistance; // start with max dist, save anything closer
     Vec3f min_dir = Vec3f(0, 0, 0);
 
     // find nearest branch for this leaf
@@ -130,9 +141,9 @@ void Grow(State* state){
   
       // branch is in range, determine if it's the closest
       ///////////////////////////////////////////////////////////////////////
-      if (distance <= min_dist) {
+      if (distance <= curr_min_dist) {
         leaves[i].ClosestBranch = b;
-        min_dist = distance;
+        curr_min_dist = distance;
         min_dir = direction;
       }
     }
@@ -165,10 +176,10 @@ void Grow(State* state){
       avgDirection.normalize();
       
       // set grow count to 0 so the new branches don't inherit a grow count > 0
-      b->Reset(); // setting also the parent's growcount to 0? ***************************
+      b->Reset();
 
       // create a branch with the new position info
-      Branch newBranch( b, b->Position + avgDirection * branchLength, avgDirection);
+      Branch newBranch(b, b->Position + avgDirection * branchLength, avgDirection);
       newBranchesVec.push_back(newBranch);
     }
     
@@ -203,10 +214,6 @@ void Grow(State* state){
       // ^^^^^ having issues with this
     
     Branch b = newBranchesVec[i];
-    branchVec.push_back(b);
-    
-    // Kee: maybe cuz we lost the root? **************************************************
-    // exactly what kind of issues??
 
     // having issues with hitting NULL in trunk...
     // the following is the element of the C# implementation that I want to emulate...
@@ -219,8 +226,6 @@ void Grow(State* state){
     //   }
     // }
 
-    branchVec[i].Width += .001;
-  
     // draw two vertices at the parent position (two makes a line), but store the new position 
     // in a separate array at the same index to be used later as an animation target
     //  
@@ -241,29 +246,12 @@ void Grow(State* state){
     m_tree.color(treeInitialColor);
     m_tree.color(treeInitialColor);
     m_tree.color(treeInitialColor);
-    widthGroup.push_back(0.001);
-    widthGroup.push_back(0.001);
-    widthGroup.push_back(0.001);
-    widthGroup.push_back(0.001);
-    colorGroup.push_back(RGB(0,0,0));
-    colorGroup.push_back(RGB(0,0,0));
-    colorGroup.push_back(RGB(0,0,0));
-    colorGroup.push_back(RGB(0,0,0));
-    
-    // the array with new positions
-    newPos.push_back(b.Position);
-    newPos.push_back(b.Position);
-    newPosGroup.push_back(growthIteration);
-    newPosGroup.push_back(growthIteration);
-    newPosGroup.push_back(growthIteration);
-    newPosGroup.push_back(growthIteration);
 
-    numNewBranches.push_back(newBranchesVec.size());
-    numNewBranches.push_back(newBranchesVec.size());
-    numNewBranches.push_back(newBranchesVec.size());
-    numNewBranches.push_back(newBranchesVec.size());
+    b.Width = 0.001;
+    b.group = growthIteration;
+    b.siblings = newBranchesVec.size();
 
-    // cout << "branch at " << iterator->first << " width = " << branches[iterator->first].Width << endl;
+    branchVec.push_back(b);
 
     branchAdded = true;
   }
@@ -278,6 +266,7 @@ void Grow(State* state){
     doneGrowing = true;
     cout << "Done growing!" << endl;
   }
+
   cout << "Number of leaves: " << leaves.size() << endl;
   cout << "Number of branches: " << branchVec.size() << endl;
   cout << "Number of vertices: " << m_tree.vertices().size() << endl;
@@ -287,10 +276,9 @@ void Grow(State* state){
   ///////////////////////////////////////////////////////////////////////
 
   for (int i = 0; i < m_tree.vertices().size(); i++) {
-    if (widthGroup[i] < maxWidthIncrement && animToggle == true) {
-
-      // widthGroup acts as a timer for when the branch will stop getting thicker
-      widthGroup[i] += widthIncrement;
+    if (branchVec[i/4].Width < maxWidthIncrement && animToggle == true) {
+      // Width itself acts as a timer for when the branch will stop getting thicker
+      branchVec[i/4].Width += widthIncrement;
 
       Vec3f vertAhead = m_tree.vertices()[i+1];
       Vec3f vertBehind = m_tree.vertices()[i-1];
@@ -300,11 +288,11 @@ void Grow(State* state){
       Vec3f move = m_tree.vertices()[i] - vertAhead;
 
       // scale width by widthIncrement, also update newPos vector accordingly to be used by anim
-      if (i%2==0) {
+      if (i % 2 == 0) {
         m_tree.vertices()[i] = vertOrig + move * branchLength * widthIncrement;
         newPos_tree[i] = vertNew + move * branchLength * widthIncrement;
       }
-      if (i%2==1) {
+      if (i % 2 == 1) {
         m_tree.vertices()[i] = vertOrig + move2 * branchLength * widthIncrement;
         newPos_tree[i] = vertNew + move2 * branchLength * widthIncrement;
       }
@@ -320,8 +308,7 @@ void Grow(State* state){
     if (m_tree.colors()[i][0] <= .02) m_tree.colors()[i][0] = .02;
     if (m_tree.colors()[i][1] <= .02) m_tree.colors()[i][1] = .02;
     if (m_tree.colors()[i][2] <= .02) m_tree.colors()[i][2] = .02;
-
   }
 
-
-}
+  growthIteration++;
+} // end of Grow()
