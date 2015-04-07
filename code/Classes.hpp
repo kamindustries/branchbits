@@ -80,6 +80,7 @@ struct Leaf {
   Vec3f location;
   Vec3f circle;
   Vec3f scramble;
+  bool skip = false;
 
   Leaf(const Vec3f& _position) {
     Position = _position;

@@ -75,9 +75,9 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     m_leaf.primitive(Graphics::TRIANGLE_STRIP);
     m_root.primitive(Graphics::POINTS);
     
-    for (int i=0; i<MAX_LEAVES; i++) {
-      state->leafSkip[i] = 0;
-    }
+    // for (int i=0; i<MAX_LEAVES; i++) {
+    //   state->leafSkip[i] = 0;
+    // }
 
     for (int i=0; i<LEAF_COUNT; i++){
       leaves.push_back(Vec3f(0,0,0));        
@@ -113,7 +113,7 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
         //growth iteration running away from anim step
         if (animStep >= growthIteration - growthBufferSteps) {
             Grow(state);
-            oldPos_tree = m_tree.vertices(); // tree from last grow?
+            oldPos_tree = m_tree.vertices(); // tree from last grow? ???
         }
       }
     });
@@ -222,6 +222,7 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
       }
     }
 
+    // load results to state
     for (int i=0; i<m_tree.vertices().size(); i++){
       state->treePos[i] = m_tree.vertices()[i];
       state->treeColor[i] = m_tree.colors()[i];

@@ -28,7 +28,7 @@ struct State {
 
   Vec3f leafPos[MAX_LEAVES];    //240000
   Color leafColor[MAX_LEAVES];  //240000
-  int leafSkip[MAX_LEAVES];     //80000
+  // int leafSkip[MAX_LEAVES];     //80000
   int refreshLeaves;
   int refreshTree;
 
