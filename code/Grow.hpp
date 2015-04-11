@@ -155,20 +155,20 @@ void Grow(State* state){
     // just making it slower. i can't do it on the first leaf loop because throwing out a branch
     // there would be too premature
     //
-    float keep = 0.f;
-    if (branches.size() / leaves.size() >= 1.f) {
-      for (int i=0; i<leaves.size(); i++) {
-        Vec3f direction = iterator->second.Position - leaves[i].Position ;
-        if (direction.mag() <= maxDistance) {
-          keep += 1.f;
-        }
-      }
-      if (keep <= (float)leaves.size() * .05) {
-        // cout << "************************** BRANCH SKIPPED~ " << endl;
-        // cout << "************************** keep #: " << keep << endl;
-        iterator->second.Skip = 1;
-      }
-    }
+    // float keep = 0.f;
+    // if (branches.size() / leaves.size() >= 1.f) {
+    //   for (int i=0; i<leaves.size(); i++) {
+    //     Vec3f direction = iterator->second.Position - leaves[i].Position ;
+    //     if (direction.mag() <= maxDistance) {
+    //       keep += 1.f;
+    //     }
+    //   }
+    //   if (keep <= (float)leaves.size() * .05) {
+    //     // cout << "************************** BRANCH SKIPPED~ " << endl;
+    //     // cout << "************************** keep #: " << keep << endl;
+    //     iterator->second.Skip = 1;
+    //   }
+    // }
   }
 
   cout << "Number of new branches: " << newBranchesVec.size() << endl;
@@ -197,23 +197,30 @@ void Grow(State* state){
     // draw two vertices at the parent position (two makes a line), but store the new position 
     // in a separate array at the same index to be used later as an animation target
     //  
-    Vec3f crossP;
-    crossP = cross(b.Parent->Position, b.Position) / 2.0;
+    // Vec3f crossP;
+    // crossP = cross(b.Parent->Position, b.Position) / 2.0;
 
-    m_tree.vertex(b.Parent->Position + crossP * branchLength * branchWidth);
-    m_tree.vertex(b.Parent->Position - crossP * branchLength * branchWidth);
-    m_tree.vertex(b.Parent->Position - crossP * branchLength * branchWidth);
-    m_tree.vertex(b.Parent->Position + crossP * branchLength * branchWidth);
+    // m_tree.vertex(b.Parent->Position + crossP * branchLength * branchWidth);
+    // m_tree.vertex(b.Parent->Position - crossP * branchLength * branchWidth);
+    // m_tree.vertex(b.Parent->Position - crossP * branchLength * branchWidth);
+    // m_tree.vertex(b.Parent->Position + crossP * branchLength * branchWidth);
 
-    newPos_tree.push_back(b.Position + crossP * branchLength * branchWidth);
-    newPos_tree.push_back(b.Position - crossP * branchLength * branchWidth);
-    newPos_tree.push_back(b.Position - crossP * branchLength * branchWidth);
-    newPos_tree.push_back(b.Position + crossP * branchLength * branchWidth);
+    m_tree.vertex(b.Parent->Position);
+    m_tree.vertex(b.Parent->Position);
+
+    // newPos_tree.push_back(b.Position + crossP * branchLength * branchWidth);
+    // newPos_tree.push_back(b.Position - crossP * branchLength * branchWidth);
+    // newPos_tree.push_back(b.Position - crossP * branchLength * branchWidth);
+    // newPos_tree.push_back(b.Position + crossP * branchLength * branchWidth);
+
+    newPos_tree.push_back(b.Position);
+    newPos_tree.push_back(b.Position);
+
 
     m_tree.color(treeInitialColor);
     m_tree.color(treeInitialColor);
-    m_tree.color(treeInitialColor);
-    m_tree.color(treeInitialColor);
+    // m_tree.color(treeInitialColor);
+    // m_tree.color(treeInitialColor);
 
     b.Width = 0.001;
     b.group = growthIteration;
@@ -244,27 +251,27 @@ void Grow(State* state){
   ///////////////////////////////////////////////////////////////////////
 
   for (int i = 0; i < m_tree.vertices().size(); i++) {
-    if (branchVec[i/4].Width < maxWidthIncrement && animToggle == true) {
-      // Width itself acts as a timer for when the branch will stop getting thicker
-      branchVec[i/4].Width += widthIncrement;
+    // if (branchVec[i/4].Width < maxWidthIncrement && animToggle == true) {
+    //   // Width itself acts as a timer for when the branch will stop getting thicker
+    //   branchVec[i/4].Width += widthIncrement;
 
-      Vec3f vertAhead = m_tree.vertices()[i+1];
-      Vec3f vertBehind = m_tree.vertices()[i-1];
-      Vec3f vertOrig = m_tree.vertices()[i];
-      Vec3f vertNew = newPos_tree[i];
-      Vec3f move2 = m_tree.vertices()[i] - vertBehind;
-      Vec3f move = m_tree.vertices()[i] - vertAhead;
+    //   Vec3f vertAhead = m_tree.vertices()[i+1];
+    //   Vec3f vertBehind = m_tree.vertices()[i-1];
+    //   Vec3f vertOrig = m_tree.vertices()[i];
+    //   Vec3f vertNew = newPos_tree[i];
+    //   Vec3f move2 = m_tree.vertices()[i] - vertBehind;
+    //   Vec3f move = m_tree.vertices()[i] - vertAhead;
 
-      // scale width by widthIncrement, also update newPos vector accordingly to be used by anim
-      if (i % 2 == 0) {
-        m_tree.vertices()[i] = vertOrig + move * branchLength * widthIncrement;
-        newPos_tree[i] = vertNew + move * branchLength * widthIncrement;
-      }
-      if (i % 2 == 1) {
-        m_tree.vertices()[i] = vertOrig + move2 * branchLength * widthIncrement;
-        newPos_tree[i] = vertNew + move2 * branchLength * widthIncrement;
-      }
-    }
+    //   // scale width by widthIncrement, also update newPos vector accordingly to be used by anim
+    //   if (i % 2 == 0) {
+    //     m_tree.vertices()[i] = vertOrig + move * branchLength * widthIncrement;
+    //     newPos_tree[i] = vertNew + move * branchLength * widthIncrement;
+    //   }
+    //   if (i % 2 == 1) {
+    //     m_tree.vertices()[i] = vertOrig + move2 * branchLength * widthIncrement;
+    //     newPos_tree[i] = vertNew + move2 * branchLength * widthIncrement;
+    //   }
+    // }
 
     // set min color and max/final color
     //

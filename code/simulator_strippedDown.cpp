@@ -14,13 +14,15 @@
 
 #include "allocore/io/al_App.hpp"
 #include "Cuttlebone/Cuttlebone.hpp"
-#include "alloutil/al_Simulator.hpp"
 #include "allocore/graphics/al_Mesh.hpp"
-#include "alloutil/al_AlloSphereAudioSpatializer.hpp"
 
 #include "common.hpp"
 #include "Grow.hpp"
 #include "audio.hpp"
+
+// #include "/Users/kurt/AlloProject/AlloSystem/alloutil/alloutil/al_Simulator.hpp"
+#include "alloutil/al_Simulator.hpp"
+#include "alloutil/al_AlloSphereAudioSpatializer.hpp"
 
 using namespace al;
 using namespace std;
@@ -31,7 +33,6 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
   cuttlebone::Maker<State, 9000> maker;
 
   Mesh m_leaf;
-  Mesh m_test;
   Buffer<Mesh::Vertex> oldPos_tree;
   Mesh groundPlane;
 
@@ -119,6 +120,9 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     });
   }
 
+  ///////////////////////////////////////////////////////////////////////
+  // A N I M A T E
+  ///////////////////////////////////////////////////////////////////////
   virtual void onAnimate(double dt) {
     float safeToAnimate = 1.f;
 
@@ -158,24 +162,24 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     // animate based on two points starting in the same position. we will move one of them
     // to its new position to form a branch.
     //
-    for (int i = 0; i < m_tree.vertices().size(); i+=4) {
+    for (int i = 0; i < m_tree.vertices().size(); i+=2) {
       // if growth iteration of branch group matches animation step
-      if (branchVec[i/4].group == animStep) {
+      if (branchVec[i/2].group == animStep) {
         // because group was push four times per branch to newPos_tree
 
         // do the animation
-        if (m_tree.vertices()[i+2] != newPos_tree[i+2]) {          
+        if (m_tree.vertices()[i+1] != newPos_tree[i+1]) {          
 
           // animate the quads. we are skipping to every 4th vertex
-          m_tree.vertices()[i+2] = oldPos_tree[i+2] * (1-time) + newPos_tree[i+2] * time;
-          m_tree.vertices()[i+3] = oldPos_tree[(i)+3] * (1-time) + newPos_tree[i+3] * time;
+          m_tree.vertices()[i+1] = oldPos_tree[i+1] * (1-time) + newPos_tree[i+1] * time;
+          // m_tree.vertices()[i+3] = oldPos_tree[(i)+3] * (1-time) + newPos_tree[i+3] * time;
           
           // snap to final position when in range and change leaf color if appropriate
-          if (abs((m_tree.vertices()[i+2] - newPos_tree[i+2]).mag()) <= .01 ) {
+          if (abs((m_tree.vertices()[i+1] - newPos_tree[i+1]).mag()) <= .01 ) {
 
             // check if close enough to a leaf to change its color
             for (int j=0; j<leaves.size(); j++){
-              Vec3f direction = leaves[j].Position - branchVec[i/2].Position;
+              Vec3f direction = leaves[j].Position - branchVec[i/2].Position; //should i/2 on branchVec?
               // because pos was push twice per branch to newPos
               float distance = direction.mag();
 
@@ -188,13 +192,13 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
               }
             }
 
-            m_tree.vertices()[i+2] = newPos_tree[i+2];
-            m_tree.vertices()[i+3] = newPos_tree[i+3];
+            m_tree.vertices()[i+1] = newPos_tree[i+1];
+            // m_tree.vertices()[i+3] = newPos_tree[i+3];
 
             // figuring out angles n stuff to set branch frequencies 
             float randRange = animStep * .2;
-            sine[i%NUM_SINE].freq    ( 100 + animStep * rnd::uniform(1.0f, branchVec[i/4].siblings / 4.0f) );
-            sine[(i+1)%NUM_SINE].freq( 100 + animStep * rnd::uniform(1.0f, branchVec[i/4].siblings / 4.0f) );
+            sine[i%NUM_SINE].freq    ( 100 + animStep * rnd::uniform(1.0f, branchVec[i/2].siblings / 4.0f) );
+            // sine[(i+1)%NUM_SINE].freq( 100 + animStep * rnd::uniform(1.0f, branchVec[i/2].siblings / 4.0f) );
             // because numNewBranches was pushed four times per branch
             
             float p = (float)rnd::uniform( (60/animStep) + .2, 80/animStep + .5);
@@ -204,7 +208,7 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
 
             animFinishedCheck++;
             cout << "anim finished check = " << animFinishedCheck << endl;
-            cout << "num new branches = " << branchVec[i/4].siblings << endl;
+            cout << "num new branches = " << branchVec[i/2].siblings << endl;
             cout << "" << endl;
           }
         }
@@ -212,7 +216,7 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
         state->treePos[i] = m_tree.vertices()[i];
       }
 
-      if (branchVec[i/4].siblings == animFinishedCheck) {
+      if (branchVec[i/2].siblings == animFinishedCheck) {
         if (animStep < growthIteration - 5) {
           time = 0;
           animFinishedCheck = 0;
@@ -260,19 +264,11 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
 
       // g.pointSize(15);
       // g.draw(m_tap);
-
-      // draw test tree
-      g.pointSize(5);
-      g.polygonMode(Graphics::FILL);
-      m_test.primitive(Graphics::QUADS);
-      // g.draw(m_test);
     }
 
     // draw "tree"
     // g.polygonMode(Graphics::POINT);
-    g.polygonMode(Graphics::LINE);
-    m_tree.primitive(Graphics::QUADS);
-    // g.polygonMode(Graphics::FILL);
+    m_tree.primitive(Graphics::LINES);
     g.draw(m_tree);
   }
   
