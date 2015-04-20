@@ -36,6 +36,10 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
   Buffer<Mesh::Vertex> oldPos_tree;
   Mesh groundPlane;
 
+  Graphics gl;
+  ShaderProgram shaderP;
+  Shader shaderV, shaderF, shaderG;
+
   float time = 0.0;
   float timeMod = 1.4;
 
@@ -56,10 +60,16 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     InitState(state);
     state->pose = nav();
     
+    ///////////////////////////////////////////////////////////////////////
+    // CAMERA AND SHADERS
+    ///////////////////////////////////////////////////////////////////////
+
     // initial camera position and far clipping plane
     nav().pos(0, 0, 0);
     lens().far(1000);
     initWindow(Window::Dim(0, 0, 600, 400), "Pineal Portal", 60);
+
+   
 
     ///////////////////////////////////////////////////////////////////////
     // set up ground plane
@@ -107,6 +117,28 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     }
   }
   
+  void onCreate() {
+    // load shaders from files
+    SearchPaths searchPaths;
+    searchPaths.addSearchPath(".", false);
+    File vPointSprite(searchPaths.find("tubes.vert"), "r", true);
+    File fPointSprite(searchPaths.find("tubes.frag"), "r", true);
+    File gPointSprite(searchPaths.find("tubes.geom"), "r", true);
+
+    shaderV.source(vPointSprite.readAll(), Shader::VERTEX).compile().printLog();
+    shaderP.attach(shaderV);
+
+    shaderF.source(fPointSprite.readAll(), Shader::FRAGMENT).compile().printLog();
+    shaderP.attach(shaderF);
+
+    shaderG.source(gPointSprite.readAll(), Shader::GEOMETRY).compile().printLog();
+    shaderP.setGeometryInputPrimitive(graphics().LINES);
+    shaderP.setGeometryOutputPrimitive(graphics().TRIANGLE_STRIP);
+    shaderP.setGeometryOutputVertices(10);
+    shaderP.attach(shaderG);
+
+    shaderP.link().printLog();
+  }
   
   void startThread() {
     computeThread = thread([&]() {
