@@ -117,7 +117,8 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     }
   }
   
-  void onCreate() {
+  void onCreate(const ViewpointWindow& w) {
+    cout<<"Loading shaders..."<<endl;
     // load shaders from files
     SearchPaths searchPaths;
     searchPaths.addSearchPath(".", false);
@@ -132,12 +133,16 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     shaderP.attach(shaderF);
 
     shaderG.source(gPointSprite.readAll(), Shader::GEOMETRY).compile().printLog();
-    shaderP.setGeometryInputPrimitive(graphics().LINES);
-    shaderP.setGeometryOutputPrimitive(graphics().TRIANGLE_STRIP);
+    shaderP.setGeometryInputPrimitive(gl.LINES);
+    shaderP.setGeometryOutputPrimitive(gl.TRIANGLE_STRIP);
     shaderP.setGeometryOutputVertices(10);
     shaderP.attach(shaderG);
 
     shaderP.link().printLog();
+
+    const GLubyte* glsl_version = glGetString(GL_SHADING_LANGUAGE_VERSION);
+    printf("glsl version: %s\n", glsl_version);
+
   }
   
   void startThread() {
@@ -239,9 +244,7 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
             // cout<<"<<"<<endl;
 
             animFinishedCheck++;
-            cout << "anim finished check = " << animFinishedCheck << endl;
-            cout << "num new branches = " << branchVec[i/2].siblings << endl;
-            cout << "" << endl;
+
           }
         }
 
@@ -297,11 +300,16 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
       // g.pointSize(15);
       // g.draw(m_tap);
     }
+    // m_tree.primitive(Graphics::LINES);
+    g.polygonMode(Graphics::LINE);
+
+    shaderP.begin();
+      shaderP.uniform("spriteRadius", .01);
+      g.draw(m_tree);
+    shaderP.end();
 
     // draw "tree"
     // g.polygonMode(Graphics::POINT);
-    m_tree.primitive(Graphics::LINES);
-    g.draw(m_tree);
   }
   
   virtual void onSound(AudioIOData& io) {
