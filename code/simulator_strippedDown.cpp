@@ -212,7 +212,8 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
           // m_tree.vertices()[i+3] = oldPos_tree[(i)+3] * (1-time) + newPos_tree[i+3] * time;
           
           // snap to final position when in range and change leaf color if appropriate
-          if (abs((m_tree.vertices()[i+1] - newPos_tree[i+1]).mag()) <= .01 ) {
+          float dist_to_final = (m_tree.vertices()[i+1] - newPos_tree[i+1]).mag();
+          if (abs(dist_to_final) <= .01 ) {
 
             // check if close enough to a leaf to change its color
             for (int j=0; j<leaves.size(); j++){
@@ -262,7 +263,7 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     }
 
     // load results to state
-    for (int i=0; i<m_tree.vertices().size(); i++){
+    for (int i=0; i < m_tree.vertices().size(); i++){
       state->treePos[i] = m_tree.vertices()[i];
       state->treeColor[i] = m_tree.colors()[i];
     }
@@ -300,16 +301,14 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
       // g.pointSize(15);
       // g.draw(m_tap);
     }
-    // m_tree.primitive(Graphics::LINES);
-    g.polygonMode(Graphics::LINE);
+    // g.polygonMode(Graphics::LINE);
+    g.polygonMode(Graphics::POINT); // easier to debug when on
 
-    shaderP.begin();
-      shaderP.uniform("spriteRadius", .01);
+    // shaderP.begin();
+      // shaderP.uniform("spriteRadius", .01);
       g.draw(m_tree);
-    shaderP.end();
+    // shaderP.end();
 
-    // draw "tree"
-    // g.polygonMode(Graphics::POINT);
   }
   
   virtual void onSound(AudioIOData& io) {

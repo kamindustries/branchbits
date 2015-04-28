@@ -39,17 +39,30 @@ Branch Root(NULL, rootPosition, Vec3f(0,1,0), 0, false, branchWidth);
 
 void Trunk(State* state){
 
-  // Set mesh to be treated as lines, only need to call this once
-  m_tree.primitive(Graphics::LINES);
+  // Set mesh to be treated as lines, only need to call this once. Turn off to render points
+  // m_tree.primitive(Graphics::LINES);
 
   // stack branches vertically until trunkHeight is reached
   Branch current(&Root, Root.Position + Root.GrowDir * branchLength);
+  current.group = -1;
+  current.siblings = 1;
 
-  while ((Root.Position - current.Position).mag() < trunkHeight) {
-    Branch trunk(current.Parent, current.Position + Root.GrowDir * branchLength);
-    branchVec.push_back(trunk);
-    current = trunk;
-  }
+  // skipping drawing a vertical trunk for now...
+  // while ((Root.Position - current.Position).mag() < trunkHeight) {
+  //   Branch trunk(current.Parent, current.Position + Root.GrowDir * branchLength);
+  //   m_tree.vertex(trunk.Parent->Position);
+  //   m_tree.vertex(trunk.Position);
+  //   branchVec.push_back(trunk);
+  //   current = trunk;
+  // }
+
+  // just put down one branch/two verts to start
+  Branch trunk(current.Parent, current.Position + Root.GrowDir * branchLength);
+  trunk.group = -1;
+  trunk.siblings = 1;
+  m_tree.vertex(trunk.Parent->Position);
+  m_tree.vertex(trunk.Position);
+  branchVec.push_back(trunk);
 
   // put vertex at each trunk pos
   cout << "trunk size: " << branchVec.size() << endl;
@@ -98,6 +111,7 @@ void Grow(State* state){
 
   ///////////////////////////////////////////////////////////////////////
   // process the leaves : find closest branch, add dir to leaf
+  ///////////////////////////////////////////////////////////////////////
   for (int i = 0; i < leaves.size(); i++) {
     Leaf& li = leaves[i];
     if (li.skip) continue;
@@ -136,6 +150,7 @@ void Grow(State* state){
 
   ///////////////////////////////////////////////////////////////////////
   // generate new branches
+  ///////////////////////////////////////////////////////////////////////
   newBranchesVec.clear();
 
   for (int i = 0; i < branchVec.size(); i++) {
@@ -176,59 +191,31 @@ void Grow(State* state){
   }
 
   cout << "Number of new branches: " << newBranchesVec.size() << endl;
-  cout << "branch info: " << endl;
-  cout << "branches size: " << branchVec.size() << endl;
 
+  ///////////////////////////////////////////////////////////////////////
   // add new branches to tree
+  ///////////////////////////////////////////////////////////////////////
   bool branchAdded = false;
   for (int i = 0; i < newBranchesVec.size(); i++) {
-    // if (iterator->second.Parent != NULL){
-      // ^^^^^ having issues with this
     
     Branch b = newBranchesVec[i];
 
-    // having issues with hitting NULL in trunk...
-    // the following is the element of the C# implementation that I want to emulate...
-    //
-    // while (p.Parent != NULL) {
-    //   if (p.Parent->Parent != NULL){
-    //     Branch next(p.Parent, p.Position, p.GrowDir, p.GrowCount, p.Skip, p.Width);
-    //     p.Width += .001;
-    //     p = next;
-    //   }
-    // }
-
-    // draw two vertices at the parent position (two makes a line), but store the new position 
-    // in a separate array at the same index to be used later as an animation target
-    //  
-    // Vec3f crossP;
-    // crossP = cross(b.Parent->Position, b.Position) / 2.0;
-
-    // m_tree.vertex(b.Parent->Position + crossP * branchLength * branchWidth);
-    // m_tree.vertex(b.Parent->Position - crossP * branchLength * branchWidth);
-    // m_tree.vertex(b.Parent->Position - crossP * branchLength * branchWidth);
-    // m_tree.vertex(b.Parent->Position + crossP * branchLength * branchWidth);
 
     m_tree.vertex(b.Parent->Position);
     m_tree.vertex(b.Parent->Position);
 
-    // newPos_tree.push_back(b.Position + crossP * branchLength * branchWidth);
-    // newPos_tree.push_back(b.Position - crossP * branchLength * branchWidth);
-    // newPos_tree.push_back(b.Position - crossP * branchLength * branchWidth);
-    // newPos_tree.push_back(b.Position + crossP * branchLength * branchWidth);
+    m_tree.color(treeInitialColor);
+    m_tree.color(treeInitialColor);
+    
 
     newPos_tree.push_back(b.Position);
     newPos_tree.push_back(b.Position);
 
-
-    m_tree.color(treeInitialColor);
-    m_tree.color(treeInitialColor);
-    // m_tree.color(treeInitialColor);
-    // m_tree.color(treeInitialColor);
 
     b.Width = 0.001;
     b.group = growthIteration;
     b.siblings = newBranchesVec.size();
+
 
     branchVec.push_back(b);
 
