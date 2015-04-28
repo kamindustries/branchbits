@@ -202,23 +202,19 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     for (int i = 0; i < m_tree.vertices().size(); i+=2) {
       // if growth iteration of branch group matches animation step
       if (branchVec[i/2].group == animStep) {
-        // because group was push four times per branch to newPos_tree
 
-        // do the animation
         if (m_tree.vertices()[i+1] != newPos_tree[i+1]) {          
 
-          // animate the quads. we are skipping to every 4th vertex
+          // animate the line. 
           m_tree.vertices()[i+1] = oldPos_tree[i+1] * (1-time) + newPos_tree[i+1] * time;
-          // m_tree.vertices()[i+3] = oldPos_tree[(i)+3] * (1-time) + newPos_tree[i+3] * time;
           
           // snap to final position when in range and change leaf color if appropriate
           float dist_to_final = (m_tree.vertices()[i+1] - newPos_tree[i+1]).mag();
-          if (abs(dist_to_final) <= .01 ) {
+          if (abs(dist_to_final) <= .01  ) {
 
             // check if close enough to a leaf to change its color
             for (int j=0; j<leaves.size(); j++){
-              Vec3f direction = leaves[j].Position - branchVec[i/2].Position; //should i/2 on branchVec?
-              // because pos was push twice per branch to newPos
+              Vec3f direction = leaves[j].Position - branchVec[i/2].Position; 
               float distance = direction.mag();
 
               if (distance <= minDistance) {
@@ -301,13 +297,13 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
       // g.pointSize(15);
       // g.draw(m_tap);
     }
-    // g.polygonMode(Graphics::LINE);
-    g.polygonMode(Graphics::POINT); // easier to debug when on
+    g.polygonMode(Graphics::LINE);
+    // g.polygonMode(Graphics::POINT); // easier to debug when on
 
-    // shaderP.begin();
-      // shaderP.uniform("spriteRadius", .01);
+    shaderP.begin();
+      shaderP.uniform("spriteRadius", .01);
       g.draw(m_tree);
-    // shaderP.end();
+    shaderP.end();
 
   }
   
