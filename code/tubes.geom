@@ -8,8 +8,8 @@ float rand(vec2 co){
 }
 
 void main(){
-  vec4 v0 = vec4(gl_PositionIn[0].xyz, 1.0);
-  vec4 v1 = vec4(gl_PositionIn[1].xyz, 1.0);
+  vec4 v0 = vec4(gl_PositionIn[0].xyz, 0.5);
+  vec4 v1 = vec4(gl_PositionIn[1].xyz, 0.5);
 
   vec3 rand_dir = vec3(-1.,1.,-2);
 
@@ -26,10 +26,10 @@ void main(){
   //     gl_ModelViewMatrix[1][1],
   //     gl_ModelViewMatrix[2][1]) * spriteRadius * .5;
 
-  vec4 p0 = vec4(-axis1 - axis2, 1.0);
-  vec4 p1 = vec4( axis1 - axis2, 1.0);
-  vec4 p2 = vec4( axis1 + axis2, 1.0);
-  vec4 p3 = vec4(-axis1 + axis2, 1.0);
+  vec4 p0 = vec4(-axis1 - axis2, 0.5);
+  vec4 p1 = vec4( axis1 - axis2, 0.5);
+  vec4 p2 = vec4( axis1 + axis2, 0.5);
+  vec4 p3 = vec4(-axis1 + axis2, 0.5);
 
   gl_FrontColor = gl_FrontColorIn[0];
   gl_Position = gl_ModelViewProjectionMatrix * (v0 + p0);

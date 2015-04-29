@@ -244,6 +244,7 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
           }
         }
 
+        // Send current tree vertex buffer to state (omni render)
         state->treePos[i] = m_tree.vertices()[i];
       }
 
@@ -296,13 +297,20 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
       // g.pointSize(15);
       // g.draw(m_tap);
     }
-    // g.polygonMode(Graphics::LINE);
-    g.polygonMode(Graphics::POINT); // easier to debug when on
 
-    // shaderP.begin();
-    //   shaderP.uniform("spriteRadius", .01);
+    // gl.matrixMode(Graphics::MODELVIEW);
+
+    // gl.viewport(0,0, width(), height());
+    // gl.matrixMode(gl.PROJECTION);
+    // gl.loadMatrix(Matrix4d::perspective(45, 1., 0.1, 100));
+
+    g.polygonMode(Graphics::LINE);
+    // g.polygonMode(Graphics::POINT); // easier to debug when on
+
+    shaderP.begin();
+      shaderP.uniform("spriteRadius", .01);
       g.draw(m_tree);
-    // shaderP.end();
+    shaderP.end();
 
   }
   
@@ -311,7 +319,7 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     fps(io.secondsPerBuffer());
 
     while (io()) {
-      updateAudio(state->audioGain);
+      `Audio(state->audioGain);
     }
 
     // set listener pose and render audio sources

@@ -40,7 +40,7 @@ Branch Root(NULL, rootPosition, Vec3f(0,1,0), 0, false, branchWidth);
 void Trunk(State* state){
 
   // Set mesh to be treated as lines, only need to call this once. Turn off to render points
-  // m_tree.primitive(Graphics::LINES);
+  m_tree.primitive(Graphics::LINES);
 
   // stack branches vertically until trunkHeight is reached
   Branch current(&Root, Root.Position + Root.GrowDir * branchLength);

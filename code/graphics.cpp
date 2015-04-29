@@ -50,9 +50,9 @@ struct Render : OmniStereoGraphicsRenderer {
 
     branchColor = RGB(1,1,1);
 
-    tree.primitive(Graphics::QUADS);
+    tree.primitive(Graphics::LINES);
 
-    for (int i=0; i<V; i++){
+    for (int i=0; i<NUM_VTX; i++){
       tree.vertex(0,0,0);
       tree.color(0,0,0);
     }
@@ -84,7 +84,7 @@ struct Render : OmniStereoGraphicsRenderer {
     int popCount = taker.get(*state);
     if (state->refreshTree == 1) {
       state->refreshTree = 0;
-      for (int i=0; i<V; i++){
+      for (int i=0; i<NUM_VTX; i++){
         tree.vertex(0,0,0);
         tree.color(0,0,0);
       }
@@ -124,8 +124,6 @@ struct Render : OmniStereoGraphicsRenderer {
     lens().eyeSep(state->eyeSeparation);
 
 
-    // light.pos(0, 1, 0);
-
     if (state->drawLeaves == true){
         g.polygonMode(Graphics::POINT);
         g.pointSize(6);
@@ -151,9 +149,9 @@ struct Render : OmniStereoGraphicsRenderer {
       g.popMatrix();
     }
 
-      tree.primitive(Graphics::QUADS);
-      g.polygonMode(Graphics::FILL);
-      g.draw(tree);
+
+    g.polygonMode(Graphics::FILL);
+    g.draw(tree);
     
 
   }
