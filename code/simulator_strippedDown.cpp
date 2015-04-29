@@ -203,14 +203,14 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
       // if growth iteration of branch group matches animation step
       if (branchVec[i/2].group == animStep) {
 
-        if (m_tree.vertices()[i+1] != newPos_tree[i+1]) {          
+        if (m_tree.vertices()[i+1] != newPos_tree[i/2]) {          
 
           // animate the line. 
-          m_tree.vertices()[i+1] = oldPos_tree[i+1] * (1-time) + newPos_tree[i+1] * time;
+          m_tree.vertices()[i+1] = oldPos_tree[i+1] * (1-time) + newPos_tree[i/2] * time;
           
           // snap to final position when in range and change leaf color if appropriate
-          float dist_to_final = (m_tree.vertices()[i+1] - newPos_tree[i+1]).mag();
-          if (abs(dist_to_final) <= .01  ) {
+          float dist_to_final = (m_tree.vertices()[i+1] - newPos_tree[i/2]).mag();
+          if (abs(dist_to_final) <= .001  ) {
 
             // check if close enough to a leaf to change its color
             for (int j=0; j<leaves.size(); j++){
@@ -226,8 +226,7 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
               }
             }
 
-            m_tree.vertices()[i+1] = newPos_tree[i+1];
-            // m_tree.vertices()[i+3] = newPos_tree[i+3];
+            m_tree.vertices()[i+1] = newPos_tree[i/2];
 
             // figuring out angles n stuff to set branch frequencies 
             float randRange = animStep * .2;
@@ -297,13 +296,13 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
       // g.pointSize(15);
       // g.draw(m_tap);
     }
-    g.polygonMode(Graphics::LINE);
-    // g.polygonMode(Graphics::POINT); // easier to debug when on
+    // g.polygonMode(Graphics::LINE);
+    g.polygonMode(Graphics::POINT); // easier to debug when on
 
-    shaderP.begin();
-      shaderP.uniform("spriteRadius", .01);
+    // shaderP.begin();
+    //   shaderP.uniform("spriteRadius", .01);
       g.draw(m_tree);
-    shaderP.end();
+    // shaderP.end();
 
   }
   

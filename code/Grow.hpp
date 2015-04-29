@@ -40,7 +40,7 @@ Branch Root(NULL, rootPosition, Vec3f(0,1,0), 0, false, branchWidth);
 void Trunk(State* state){
 
   // Set mesh to be treated as lines, only need to call this once. Turn off to render points
-  m_tree.primitive(Graphics::LINES);
+  // m_tree.primitive(Graphics::LINES);
 
   // stack branches vertically until trunkHeight is reached
   Branch current(&Root, Root.Position + Root.GrowDir * branchLength);
@@ -62,7 +62,8 @@ void Trunk(State* state){
   trunk.siblings = 1;
   m_tree.vertex(trunk.Parent->Position);
   m_tree.vertex(trunk.Position);
-  newPos_tree.push_back(trunk.Parent->Position);
+  m_tree.color(treeInitialColor);
+  m_tree.color(treeInitialColor);
   newPos_tree.push_back(trunk.Position);
   branchVec.push_back(trunk);
 
@@ -209,8 +210,6 @@ void Grow(State* state){
     m_tree.color(treeInitialColor);
     m_tree.color(treeInitialColor);
     
-
-    newPos_tree.push_back(b.Position);
     newPos_tree.push_back(b.Position);
 
 
@@ -222,13 +221,13 @@ void Grow(State* state){
     branchVec.push_back(b);
 
     branchAdded = true;
-  }
+  } 
 
-  // cout << "**************************************" << endl;
-  // cout << "BRANCHES VERTEX INFO:" << endl;
-  // for (int i = 0; i < m_tree.vertices().size(); i+=1) {
-  //   cout << "vertex " << i << ": " << m_tree.vertices()[i] << endl;
-  // }
+  cout << "**************************************" << endl;
+  cout << "BRANCHES VERTEX INFO:" << endl;
+  for (int i = 0; i < m_tree.vertices().size(); i+=1) {
+    cout << "vertex " << i << ": " << m_tree.vertices()[i] << endl;
+  }
 
   if (branchAdded == false) {
     doneGrowing = true;
@@ -279,4 +278,5 @@ void Grow(State* state){
   }
 
   growthIteration++;
+
 } // end of Grow()
