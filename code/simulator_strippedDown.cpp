@@ -319,7 +319,7 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     fps(io.secondsPerBuffer());
 
     while (io()) {
-      `Audio(state->audioGain);
+      updateAudio(state->audioGain);
     }
 
     // set listener pose and render audio sources
