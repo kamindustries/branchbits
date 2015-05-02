@@ -264,6 +264,7 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
       state->treeColor[i] = m_tree.colors()[i];
     }
 
+
     state->t += dt;
     state->n++;
     state->pose = nav();
@@ -272,6 +273,7 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     maker.set(*state);
   }
 
+  int frame_num = 0;
   virtual void onDraw(Graphics& g, const Viewpoint& v) {
 
     // draw groundplane
@@ -309,9 +311,11 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
 
     shaderP.begin();
       shaderP.uniform("spriteRadius", .01);
+      shaderP.uniform("frame_num", float(frame_num));
       g.draw(m_tree);
     shaderP.end();
 
+    frame_num++;
   }
   
   virtual void onSound(AudioIOData& io) {

@@ -223,11 +223,11 @@ void Grow(State* state){
     branchAdded = true;
   } 
 
-  cout << "**************************************" << endl;
-  cout << "BRANCHES VERTEX INFO:" << endl;
-  for (int i = 0; i < m_tree.vertices().size(); i+=1) {
-    cout << "vertex " << i << ": " << m_tree.vertices()[i] << endl;
-  }
+  // cout << "**************************************" << endl;
+  // cout << "BRANCHES VERTEX INFO:" << endl;
+  // for (int i = 0; i < m_tree.vertices().size(); i+=1) {
+  //   cout << "vertex " << i << ": " << m_tree.vertices()[i] << endl;
+  // }
 
   if (branchAdded == false) {
     doneGrowing = true;
