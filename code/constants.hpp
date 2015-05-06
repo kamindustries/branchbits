@@ -6,8 +6,7 @@ using namespace al;
 using namespace std;
 
 const int numNewLeaves = 3;
-// const float anim_speed = 1.4;
-const float anim_speed = 2.4;
+const float anim_speed = 1.4;
 const float newLeafRadius = .2;
 const float treeWidth = 1.5;    
 const float treeHeight = 2.5;   
