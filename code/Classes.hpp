@@ -106,25 +106,23 @@ struct Leaf {
   }
 
   void RandomizeTorus() {
-    float r0 = 3.8;
-    float r1 = 1.6;
-    float s = 0.8;
-    float theta = (float)rnd::uniform(0.f, 2.f);
+    float R = 4.2;
+    float r1 = (float)rnd::uniform(2.0);
+    float theta = (float)rnd::uniform(2.f, 0.f);
     theta *=  M_PI;
-    float phi = (float)rnd::uniform(0.f, 2.f);
+    float phi = (float)rnd::uniform(2.f, 0.f);
     phi *= M_PI;
     
-    scramble = Vec3f( (float)rnd::uniform(-s,s),
-                      (float)rnd::uniform(-s,s),
-                      (float)rnd::uniform(-s,s));
-
-
-    circle = Vec3f( cos(theta) * (r0 + r1 * cos(phi)),
+    circle = Vec3f( cos(theta) * (R + r1*cos(phi)),
                     r1 * sin(phi) * 2.f,
-                    sin(theta) * (r0 + r1 * cos(phi)));
+                    sin(theta) * (R + r1*cos(phi)));
 
-    // circle offset
-    circle += scramble; 
+    float s = .8;
+    scramble = Vec3f( (float)rnd::uniform(s,-s),
+                      (float)rnd::uniform(s,-s),
+                      (float)rnd::uniform(s,-s));
+    circle += scramble;
+
     circle = Vec3f(circle[0], circle[1], circle[2]);
     Position = circle;
   }

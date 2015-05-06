@@ -41,7 +41,6 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
   Shader shaderV, shaderF, shaderG;
 
   float time = 0.0;
-  float timeMod = 1.4;
 
   // thread stuff
   thread computeThread;
@@ -135,7 +134,7 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     shaderG.source(gPointSprite.readAll(), Shader::GEOMETRY).compile().printLog();
     shaderP.setGeometryInputPrimitive(gl.LINES);
     shaderP.setGeometryOutputPrimitive(gl.TRIANGLE_STRIP);
-    shaderP.setGeometryOutputVertices(10);
+    shaderP.setGeometryOutputVertices(18);
     shaderP.attach(shaderG);
 
     shaderP.link().printLog();
@@ -151,7 +150,7 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
         //growth iteration running away from anim step
         if (animStep >= growthIteration - growthBufferSteps) {
             Grow(state);
-            oldPos_tree = m_tree.vertices(); // tree from last grow? ???
+            oldPos_tree = m_tree.vertices(); // trxxee from last grow? ???
         }
       }
     });
@@ -190,7 +189,7 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     }
 
     dt *= animToggle;
-    dt *= timeMod;
+    dt *= anim_speed;
     dt *= safeToAnimate;
 
     if (time < 0) time = 0;
@@ -210,7 +209,7 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
           
           // snap to final position when in range and change leaf color if appropriate
           float dist_to_final = (m_tree.vertices()[i+1] - newPos_tree[i/2]).mag();
-          if (abs(dist_to_final) <= .001  ) {
+          if (abs(dist_to_final) <= .001) {
 
             // check if close enough to a leaf to change its color
             for (int j=0; j<leaves.size(); j++){
@@ -306,11 +305,10 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     // gl.matrixMode(gl.PROJECTION);
     // gl.loadMatrix(Matrix4d::perspective(45, 1., 0.1, 100));
 
-    g.polygonMode(Graphics::LINE);
+    g.polygonMode(Graphics::FILL);
     // g.polygonMode(Graphics::POINT); // easier to debug when on
 
     shaderP.begin();
-      shaderP.uniform("spriteRadius", .01);
       shaderP.uniform("frame_num", float(frame_num));
       g.draw(m_tree);
     shaderP.end();

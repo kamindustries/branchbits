@@ -64,6 +64,10 @@ void Trunk(State* state){
   m_tree.vertex(trunk.Position);
   m_tree.color(treeInitialColor);
   m_tree.color(treeInitialColor);
+  // m_tree.color(RGB(0,0,0));
+  // m_tree.color(RGB(0,0,0));
+
+
   newPos_tree.push_back(trunk.Position);
   branchVec.push_back(trunk);
 
@@ -103,6 +107,7 @@ void Grow(State* state){
   if (leavesSkipped >= state->currentLeafSize * 0.9 && dynamicLeaves == false) {
     animPrepareToStop = true;
     animStopOnStep = growthIteration;
+    animToggle = false;
 
     cout << "<<" << endl;
     cout << "~~~~~~~~~Done growing!!!" << endl;
@@ -157,6 +162,10 @@ void Grow(State* state){
   newBranchesVec.clear();
 
   for (int i = 0; i < branchVec.size(); i++) {
+    // since we are looping through all the branches now, it's a good time to increment color
+    m_tree.colors()[i*2] += RGB(treeIncrementColor);
+    m_tree.colors()[(i*2)+1] += RGB(treeIncrementColor);
+
     Branch* b = &branchVec[i];
     if (b->Skip) continue;
 
@@ -242,40 +251,40 @@ void Grow(State* state){
   // W I D T H   &   C O L O R
   ///////////////////////////////////////////////////////////////////////
 
-  for (int i = 0; i < m_tree.vertices().size(); i++) {
-    // if (branchVec[i/4].Width < maxWidthIncrement && animToggle == true) {
-    //   // Width itself acts as a timer for when the branch will stop getting thicker
-    //   branchVec[i/4].Width += widthIncrement;
+  // for (int i = 0; i < m_tree.vertices().size(); i++) {
+  //   // if (branchVec[i/4].Width < maxWidthIncrement && animToggle == true) {
+  //   //   // Width itself acts as a timer for when the branch will stop getting thicker
+  //   //   branchVec[i/4].Width += widthIncrement;
 
-    //   Vec3f vertAhead = m_tree.vertices()[i+1];
-    //   Vec3f vertBehind = m_tree.vertices()[i-1];
-    //   Vec3f vertOrig = m_tree.vertices()[i];
-    //   Vec3f vertNew = newPos_tree[i];
-    //   Vec3f move2 = m_tree.vertices()[i] - vertBehind;
-    //   Vec3f move = m_tree.vertices()[i] - vertAhead;
+  //   //   Vec3f vertAhead = m_tree.vertices()[i+1];
+  //   //   Vec3f vertBehind = m_tree.vertices()[i-1];
+  //   //   Vec3f vertOrig = m_tree.vertices()[i];
+  //   //   Vec3f vertNew = newPos_tree[i];
+  //   //   Vec3f move2 = m_tree.vertices()[i] - vertBehind;
+  //   //   Vec3f move = m_tree.vertices()[i] - vertAhead;
 
-    //   // scale width by widthIncrement, also update newPos vector accordingly to be used by anim
-    //   if (i % 2 == 0) {
-    //     m_tree.vertices()[i] = vertOrig + move * branchLength * widthIncrement;
-    //     newPos_tree[i] = vertNew + move * branchLength * widthIncrement;
-    //   }
-    //   if (i % 2 == 1) {
-    //     m_tree.vertices()[i] = vertOrig + move2 * branchLength * widthIncrement;
-    //     newPos_tree[i] = vertNew + move2 * branchLength * widthIncrement;
-    //   }
-    // }
+  //   //   // scale width by widthIncrement, also update newPos vector accordingly to be used by anim
+  //   //   if (i % 2 == 0) {
+  //   //     m_tree.vertices()[i] = vertOrig + move * branchLength * widthIncrement;
+  //   //     newPos_tree[i] = vertNew + move * branchLength * widthIncrement;
+  //   //   }
+  //   //   if (i % 2 == 1) {
+  //   //     m_tree.vertices()[i] = vertOrig + move2 * branchLength * widthIncrement;
+  //   //     newPos_tree[i] = vertNew + move2 * branchLength * widthIncrement;
+  //   //   }
+  //   // }
 
-    // set min color and max/final color
-    //
-    m_tree.colors()[i] += RGB(treeIncrementColor);
+  //   // set min color and max/final color
+  //   //
+  //   m_tree.colors()[i] += RGB(treeIncrementColor);
 
-    if (m_tree.colors()[i][0] >= 1) m_tree.colors()[i][0] = 1;
-    if (m_tree.colors()[i][1] >= 1) m_tree.colors()[i][1] = 1;
-    if (m_tree.colors()[i][2] >= 1) m_tree.colors()[i][2] = 1;
-    if (m_tree.colors()[i][0] <= .02) m_tree.colors()[i][0] = .02;
-    if (m_tree.colors()[i][1] <= .02) m_tree.colors()[i][1] = .02;
-    if (m_tree.colors()[i][2] <= .02) m_tree.colors()[i][2] = .02;
-  }
+  //   if (m_tree.colors()[i][0] >= 1) m_tree.colors()[i][0] = 1;
+  //   if (m_tree.colors()[i][1] >= 1) m_tree.colors()[i][1] = 1;
+  //   if (m_tree.colors()[i][2] >= 1) m_tree.colors()[i][2] = 1;
+  //   if (m_tree.colors()[i][0] <= .02) m_tree.colors()[i][0] = .02;
+  //   if (m_tree.colors()[i][1] <= .02) m_tree.colors()[i][1] = .02;
+  //   if (m_tree.colors()[i][2] <= .02) m_tree.colors()[i][2] = .02;
+  // }
 
   growthIteration++;
 

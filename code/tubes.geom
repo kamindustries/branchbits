@@ -1,7 +1,6 @@
 #version 120
 #extension GL_EXT_geometry_shader4 : enable // it is extension in 120
 
-uniform float spriteRadius;
 uniform float frame_num;
 
 float rand(vec2 co){
@@ -196,17 +195,20 @@ float pnoise(vec3 P, vec3 rep)
 void main(){
   vec4 v0 = vec4(gl_PositionIn[0].xyz, 0.5);
   vec4 v1 = vec4(gl_PositionIn[1].xyz, 0.5);
-
+  vec4 vtx[2];
+  vtx[0] = v0;
+  vtx[1] = v1;
   // do some wiggling
-  // offset controls animation speed
+  // offset = animation speed
   vec3 offset = vec3(frame_num*.05);
 
-  // get 1D noise value for both points
+  // get 1D noise for each point position
   // outside multiplier = amplitude
   // poisition multiplier = frequency
   // 2nd parameter = noise scale (i think)
-  float noise_0 = 0.2 * pnoise((v0.xyz + offset) * 0.5, vec3(100.));
-  float noise_1 = 0.2 * pnoise((v1.xyz + offset) * 0.5, vec3(100.));
+  float n_amplitude = 0.02;
+  float noise_0 = n_amplitude * pnoise((v0.xyz + offset) * 0.5, vec3(100.));
+  float noise_1 = n_amplitude * pnoise((v1.xyz + offset) * 0.5, vec3(100.));
 
   // get normalized point poisition. this is what direction we will perturb the original by
   // there's probably a smarter vector we should be using for this
@@ -218,91 +220,75 @@ void main(){
   // add it to original point position
   v0.xyz += (v0_norm * noise_0);
   v1.xyz += (v1_norm * noise_1);
+  // // end noise
 
 
+  // get radius from red channel
+  vec4 Cd = gl_FrontColorIn[0];
+  float radius[2] = float[2](1.,1.);
+  float max_radius = 0.01;
+  float min_radius = Cd.r * .04;
+  radius[0] *= max_radius;
+  if (radius[0] >= max_radius) radius[0] = max_radius;
+
+  // scale diameter by sin wave
+
+  float phase = abs(1.-Cd.r) * 1.;
+  float phase_offset = frame_num * 0.001;
+  // this matches sin to same one controlling brightness in frag
+  radius[0] *= pow(((sin((phase - phase_offset) * 12.) + 1.) * 0.5),3.); 
+  radius[0] += min_radius;
+  radius[1] = radius[0] * 1.0;
 
   vec3 rand_dir = vec3(-1.,1.,-2);
 
-  vec3 axis1 = normalize(cross(v0.xyz - v1.xyz, rand_dir)) * spriteRadius;
-  vec3 axis2 = normalize(cross(v0.xyz - v1.xyz, axis1)) * spriteRadius;
 
+  for (int i = 0; i < 8; i++){
+    for (int j = 0; j < 2; j++){ // each incoming point
+      float angle = (2 * 3.1459 * float(i)/8.);
+      vec3 axis1 = normalize(cross(vtx[0].xyz - vtx[1].xyz, rand_dir)) * radius[j];
+      vec3 axis2 = normalize(cross(vtx[0].xyz - vtx[1].xyz, axis1)) * radius[j];
 
-  //screen-aligned axes
-  // vec3 axis1 = vec3(  gl_ModelViewMatrix[0][0],
-  //     gl_ModelViewMatrix[1][0],
-  //     gl_ModelViewMatrix[2][0]) * spriteRadius * .5;
+      vec3 rot_cos = axis1 * cos(angle);
+      vec3 rot_sin = axis2 * sin(angle);
+      vec3 new_axis = (rot_cos + rot_sin);
 
-  // vec3 axis2 = vec3(  gl_ModelViewMatrix[0][1],
-  //     gl_ModelViewMatrix[1][1],
-  //     gl_ModelViewMatrix[2][1]) * spriteRadius * .5;
+      vec4 p = vec4(new_axis, 0.5);
 
-  vec4 p0 = vec4(-axis1 - axis2, 0.5);
-  vec4 p1 = vec4( axis1 - axis2, 0.5);
-  vec4 p2 = vec4( axis1 + axis2, 0.5);
-  vec4 p3 = vec4(-axis1 + axis2, 0.5);
+      // gl_FrontColor = gl_FrontColorIn[j];
+      gl_Position = gl_ModelViewProjectionMatrix * (vtx[j] + p);
 
-  gl_FrontColor = gl_FrontColorIn[0];
-  gl_Position = gl_ModelViewProjectionMatrix * (v0 + p0);
-  EmitVertex();
-  gl_FrontColor = gl_FrontColorIn[1];
-  gl_Position = gl_ModelViewProjectionMatrix * (v1 + p0);
-  EmitVertex();
+      // assign z depth to green channel for use in fragment
+      vec4 Ci = gl_FrontColorIn[j];
+      Ci.g = 1.-(pow(gl_Position.z, 1.5) * .1)*.5;
+      gl_FrontColor = Ci;
+      EmitVertex();
 
-  gl_FrontColor = gl_FrontColorIn[0];
-  gl_Position = gl_ModelViewProjectionMatrix * (v0 + p1);
-  EmitVertex();
-  gl_FrontColor = gl_FrontColorIn[1];
-  gl_Position = gl_ModelViewProjectionMatrix * (v1 + p1);
-  EmitVertex();
+      // Have to connect back to when angle = 0 to close the tube
+      // otherwise there's a black hole on the end
+      if (i == 7) {
+        angle = 0;
+        axis1 = normalize(cross(vtx[0].xyz - vtx[1].xyz, rand_dir)) * radius[j];
+        axis2 = normalize(cross(vtx[0].xyz - vtx[1].xyz, axis1)) * radius[j];
 
-  gl_FrontColor = gl_FrontColorIn[0];
-  gl_Position = gl_ModelViewProjectionMatrix * (v0 + p2);
-  EmitVertex();
-  gl_FrontColor = gl_FrontColorIn[1];
-  gl_Position = gl_ModelViewProjectionMatrix * (v1 + p2);
-  EmitVertex();
+        rot_cos = axis1 * cos(angle);
+        rot_sin = axis2 * sin(angle);
+        new_axis = (rot_cos + rot_sin);
 
-  gl_FrontColor = gl_FrontColorIn[0];
-  gl_Position = gl_ModelViewProjectionMatrix * (v0 + p3);
-  EmitVertex();
-  gl_FrontColor = gl_FrontColorIn[1];
-  gl_Position = gl_ModelViewProjectionMatrix * (v1 + p3);
-  EmitVertex();
+        p = vec4(new_axis, 0.5);
 
-  gl_FrontColor = gl_FrontColorIn[0];
-  gl_Position = gl_ModelViewProjectionMatrix * (v0 + p0);
-  EmitVertex();
-  gl_FrontColor = gl_FrontColorIn[1];
-  gl_Position = gl_ModelViewProjectionMatrix * (v1 + p0);
-  EmitVertex();
+        // gl_FrontColor = gl_FrontColorIn[j];
+        gl_Position = gl_ModelViewProjectionMatrix * (vtx[j] + p);
+        Ci = gl_FrontColorIn[j];
+        Ci.g = 1.-(pow(gl_Position.z, 1.5) * .1)*.5;
+        gl_FrontColor = Ci;
+        EmitVertex();
+
+      }
+
+    }
+  }
 
   EndPrimitive();
 
-  // for(int i = 0; i < gl_VerticesIn; ++i){
-  //   // copy color
-  //   gl_FrontColor = gl_FrontColorIn[i];
-
-  //   vec4 p = gl_ModelViewProjectionMatrix * vec4(gl_PositionIn[i].xyz, 0.5);
-
-  //   gl_TexCoord[0] = vec4(0, 0, 0, 1);
-  //   gl_Position =  p + pxy;
-  //   EmitVertex();
-
-  //   gl_TexCoord[0] = vec4(1, 0, 0, 1);
-  //   gl_Position =  p + pXy;
-  //   EmitVertex();
-
-  //   gl_TexCoord[0] = vec4(0, 1, 0, 1);
-  //   gl_Position =  p + pxY;
-  //   EmitVertex();
-
-  //   gl_TexCoord[0] = vec4(1, 1, 0, 1);
-  //   gl_Position =  p + pXY;
-  //   EmitVertex();
-
-  //   EndPrimitive();
-  // }
-
-  //  EndPrimitive();
-  // gl_Position = gl_PositionIn[0];
 }
