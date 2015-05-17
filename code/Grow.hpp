@@ -38,14 +38,16 @@ int animStopOnStep = 0;
 Branch Root(NULL, rootPosition, Vec3f(0,1,0), 0, false, branchWidth); 
 
 void Trunk(State* state){
+  Root.group = -1;
 
   // Set mesh to be treated as lines, only need to call this once. Turn off to render points
   m_tree.primitive(Graphics::LINES);
 
   // stack branches vertically until trunkHeight is reached
-  Branch current(&Root, Root.Position + Root.GrowDir * branchLength);
-  current.group = -1;
-  current.siblings = 1;
+  // Branch current(&Root, Root.Position + Root.GrowDir * branchLength);
+  // current.group = -1;
+  // current.siblings = 1;
+  // current.Width = branchWidth;
 
   // skipping drawing a vertical trunk for now...
   // while ((Root.Position - current.Position).mag() < trunkHeight) {
@@ -57,9 +59,11 @@ void Trunk(State* state){
   // }
 
   // just put down one branch/two verts to start
-  Branch trunk(current.Parent, current.Position + Root.GrowDir * branchLength);
+  // Branch trunk(current.Parent, current.Position + Root.GrowDir * branchLength);
+  Branch trunk(&Root, Root.Position + Root.GrowDir * branchLength);
   trunk.group = -1;
   trunk.siblings = 1;
+  trunk.Width = branchWidth;
   m_tree.vertex(trunk.Parent->Position);
   m_tree.vertex(trunk.Position);
   m_tree.color(treeInitialColor);
@@ -72,16 +76,16 @@ void Trunk(State* state){
   branchVec.push_back(trunk);
 
   // put vertex at each trunk pos
-  cout << "trunk size: " << branchVec.size() << endl;
-  for (int i = 0; i < branchVec.size(); i++) {
-    Branch& b = branchVec[i];
-    if (b.Parent != NULL){
-      b.group =  growthIteration;
-      b.siblings = 1;
-      m_root.vertex(b.Position);
-      m_root.color(rootColor);
-    }
-  }
+  // cout << "trunk size: " << branchVec.size() << endl;
+  // for (int i = 0; i < branchVec.size(); i++) {
+  //   Branch& b = branchVec[i];
+  //   if (b.Parent != NULL){
+  //     b.group =  growthIteration;
+  //     b.siblings = 1;
+  //     m_root.vertex(b.Position);
+  //     m_root.color(rootColor);
+  //   }
+  // }
 
   state->pSize = m_root.vertices().size();
 }
@@ -167,6 +171,11 @@ void Grow(State* state){
     m_tree.colors()[(i*2)+1] += RGB(treeIncrementColor);
 
     Branch* b = &branchVec[i];
+
+    // Color plus_width = RGB(b->Width, 0, 0);
+    // m_tree.colors()[i*2] += RGB(plus_width);
+    // m_tree.colors()[(i*2)+1] += RGB(plus_width);
+
     if (b->Skip) continue;
 
     // if at least one leaf is affecting the branch
@@ -208,6 +217,8 @@ void Grow(State* state){
   // add new branches to tree
   ///////////////////////////////////////////////////////////////////////
   bool branchAdded = false;
+
+  cout << growthIteration << endl;
   for (int i = 0; i < newBranchesVec.size(); i++) {
     
     Branch b = newBranchesVec[i];
@@ -222,7 +233,7 @@ void Grow(State* state){
     newPos_tree.push_back(b.Position);
 
 
-    b.Width = 0.001;
+    b.Width = 0.0001;
     b.group = growthIteration;
     b.siblings = newBranchesVec.size();
 
@@ -230,6 +241,34 @@ void Grow(State* state){
     branchVec.push_back(b);
 
     branchAdded = true;
+
+    // Branch x = newBranchesVec[i];
+    // x = x.Parent;
+    // while (x.group > 0) {
+    //   Branch& c = x;
+    //   c.Width += 0.5;
+    //   if (x.group < 0) break;
+    //   else x = x.Parent;
+    // }
+
+    Branch* y = &newBranchesVec[i];
+    y = y->Parent;
+    int test = 0;
+    // if (y->Parent != NULL){
+      // y = y->Parent;
+      // while (y->Parent->group > 0) {
+      // while (y->group > 3) {
+      //   y->Width += .04;
+      //   y->Position += Vec3f(0, .1, 0);
+      //   if (y->Parent == NULL) break;
+      //   else {
+      //     y = y->Parent;
+      //     test++;
+      //   }
+      // }
+    // }
+    cout<<i<<": "<<test<<endl;
+
   } 
 
   // cout << "**************************************" << endl;
@@ -246,45 +285,6 @@ void Grow(State* state){
   cout << "Number of leaves: " << leaves.size() << endl;
   cout << "Number of branches: " << branchVec.size() << endl;
   cout << "Number of vertices: " << m_tree.vertices().size() << endl;
-
-  ///////////////////////////////////////////////////////////////////////
-  // W I D T H   &   C O L O R
-  ///////////////////////////////////////////////////////////////////////
-
-  // for (int i = 0; i < m_tree.vertices().size(); i++) {
-  //   // if (branchVec[i/4].Width < maxWidthIncrement && animToggle == true) {
-  //   //   // Width itself acts as a timer for when the branch will stop getting thicker
-  //   //   branchVec[i/4].Width += widthIncrement;
-
-  //   //   Vec3f vertAhead = m_tree.vertices()[i+1];
-  //   //   Vec3f vertBehind = m_tree.vertices()[i-1];
-  //   //   Vec3f vertOrig = m_tree.vertices()[i];
-  //   //   Vec3f vertNew = newPos_tree[i];
-  //   //   Vec3f move2 = m_tree.vertices()[i] - vertBehind;
-  //   //   Vec3f move = m_tree.vertices()[i] - vertAhead;
-
-  //   //   // scale width by widthIncrement, also update newPos vector accordingly to be used by anim
-  //   //   if (i % 2 == 0) {
-  //   //     m_tree.vertices()[i] = vertOrig + move * branchLength * widthIncrement;
-  //   //     newPos_tree[i] = vertNew + move * branchLength * widthIncrement;
-  //   //   }
-  //   //   if (i % 2 == 1) {
-  //   //     m_tree.vertices()[i] = vertOrig + move2 * branchLength * widthIncrement;
-  //   //     newPos_tree[i] = vertNew + move2 * branchLength * widthIncrement;
-  //   //   }
-  //   // }
-
-  //   // set min color and max/final color
-  //   //
-  //   m_tree.colors()[i] += RGB(treeIncrementColor);
-
-  //   if (m_tree.colors()[i][0] >= 1) m_tree.colors()[i][0] = 1;
-  //   if (m_tree.colors()[i][1] >= 1) m_tree.colors()[i][1] = 1;
-  //   if (m_tree.colors()[i][2] >= 1) m_tree.colors()[i][2] = 1;
-  //   if (m_tree.colors()[i][0] <= .02) m_tree.colors()[i][0] = .02;
-  //   if (m_tree.colors()[i][1] <= .02) m_tree.colors()[i][1] = .02;
-  //   if (m_tree.colors()[i][2] <= .02) m_tree.colors()[i][2] = .02;
-  // }
 
   growthIteration++;
 

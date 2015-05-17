@@ -178,7 +178,8 @@ void main(){
 
     Cd.b = pow(1.-gl_Color.r,10.) * 2.1459;
     Cd.b += Cd.r * 1.;
-    Cd.b += frame_num * 0.001;
+    // Cd.b += frame_num * 0.001;
+    Cd.b += frame_num * 0.1;
   
     // Cd.r = gl_Color.g;
     // Cd.g = 0.;

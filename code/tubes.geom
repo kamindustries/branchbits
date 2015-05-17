@@ -193,11 +193,11 @@ float pnoise(vec3 P, vec3 rep)
 
 
 void main(){
-  vec4 v0 = vec4(gl_PositionIn[0].xyz, 0.5);
-  vec4 v1 = vec4(gl_PositionIn[1].xyz, 0.5);
+  // vec4 v0 = vec4(gl_PositionIn[0].xyz, 0.5);
+  // vec4 v1 = vec4(gl_PositionIn[1].xyz, 0.5);
   vec4 vtx[2];
-  vtx[0] = v0;
-  vtx[1] = v1;
+  vtx[0] = vec4(gl_PositionIn[0].xyz, 0.5);
+  vtx[1] = vec4(gl_PositionIn[1].xyz, 0.5);
   // do some wiggling
   // offset = animation speed
   vec3 offset = vec3(frame_num*.05);
@@ -206,20 +206,20 @@ void main(){
   // outside multiplier = amplitude
   // poisition multiplier = frequency
   // 2nd parameter = noise scale (i think)
-  float n_amplitude = 0.02;
-  float noise_0 = n_amplitude * pnoise((v0.xyz + offset) * 0.5, vec3(100.));
-  float noise_1 = n_amplitude * pnoise((v1.xyz + offset) * 0.5, vec3(100.));
+  float n_amplitude = 0.;
+  float noise_0 = n_amplitude * pnoise((vtx[0].xyz + offset) * 0.5, vec3(100.));
+  float noise_1 = n_amplitude * pnoise((vtx[1].xyz + offset) * 0.5, vec3(100.));
 
   // get normalized point poisition. this is what direction we will perturb the original by
   // there's probably a smarter vector we should be using for this
   // houdini's noise function takes a vec3 and has the option to output either a float or vec3
   // all the noises I could find output floats. there's probably a trick to get proper vec3 noise
-  vec3 v0_norm = normalize(v0.xyz);
-  vec3 v1_norm = normalize(v1.xyz);
+  vec3 v0_norm = normalize(vtx[0].xyz);
+  vec3 v1_norm = normalize(vtx[1].xyz);
 
   // add it to original point position
-  v0.xyz += (v0_norm * noise_0);
-  v1.xyz += (v1_norm * noise_1);
+  vtx[0].xyz += (v0_norm * noise_0);
+  vtx[1].xyz += (v1_norm * noise_1);
   // // end noise
 
 
@@ -234,7 +234,8 @@ void main(){
   // scale diameter by sin wave
 
   float phase = abs(1.-Cd.r) * 1.;
-  float phase_offset = frame_num * 0.001;
+  // float phase_offset = frame_num * 0.001;
+  float phase_offset = frame_num * 0.01;
   // this matches sin to same one controlling brightness in frag
   radius[0] *= pow(((sin((phase - phase_offset) * 12.) + 1.) * 0.5),3.); 
   radius[0] += min_radius;
@@ -255,37 +256,36 @@ void main(){
 
       vec4 p = vec4(new_axis, 0.5);
 
-      // gl_FrontColor = gl_FrontColorIn[j];
       gl_Position = gl_ModelViewProjectionMatrix * (vtx[j] + p);
 
       // assign z depth to green channel for use in fragment
       vec4 Ci = gl_FrontColorIn[j];
-      Ci.g = 1.-(pow(gl_Position.z, 1.5) * .1)*.5;
+      Ci.g = 1.-(pow(gl_Position.z, 1.5) * .1)*.1;
       gl_FrontColor = Ci;
       EmitVertex();
+    }
+    // Have to connect back to when angle = 0 to close the tube
+    // otherwise there's a black hole on the end
+    if (i == 7) {
+      for (int j = 0; j < 2; j++){
+        float angle = 0.;
+        vec3 axis1 = normalize(cross(vtx[0].xyz - vtx[1].xyz, rand_dir)) * radius[j];
+        vec3 axis2 = normalize(cross(vtx[0].xyz - vtx[1].xyz, axis1)) * radius[j];
 
-      // Have to connect back to when angle = 0 to close the tube
-      // otherwise there's a black hole on the end
-      if (i == 7) {
-        angle = 0;
-        axis1 = normalize(cross(vtx[0].xyz - vtx[1].xyz, rand_dir)) * radius[j];
-        axis2 = normalize(cross(vtx[0].xyz - vtx[1].xyz, axis1)) * radius[j];
+        vec3 rot_cos = axis1 * cos(angle);
+        vec3 rot_sin = axis2 * sin(angle);
+        vec3 new_axis = (rot_cos + rot_sin);
 
-        rot_cos = axis1 * cos(angle);
-        rot_sin = axis2 * sin(angle);
-        new_axis = (rot_cos + rot_sin);
+        vec4 p = vec4(new_axis, 0.5);
 
-        p = vec4(new_axis, 0.5);
-
-        // gl_FrontColor = gl_FrontColorIn[j];
         gl_Position = gl_ModelViewProjectionMatrix * (vtx[j] + p);
-        Ci = gl_FrontColorIn[j];
-        Ci.g = 1.-(pow(gl_Position.z, 1.5) * .1)*.5;
+
+        // assign z depth to green channel for use in fragment
+        vec4 Ci = gl_FrontColorIn[j];
+        Ci.g = 1.-(pow(gl_Position.z, 1.5) * .1)*.1;
         gl_FrontColor = Ci;
         EmitVertex();
-
       }
-
     }
   }
 
