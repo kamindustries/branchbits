@@ -6,7 +6,7 @@ using namespace al;
 using namespace std;
 
 // #define LEAF_COUNT 2200  // number of leaves
-#define LEAF_COUNT 5200  // number of leaves
+#define LEAF_COUNT 6000  // number of leaves
 #define STEPS 30         // number of iterations
 #define NUM_VTX 100000         // max number of verts in tree mesh
 #define MAX_LEAVES 20000
@@ -17,6 +17,7 @@ using namespace std;
 struct State {
   double eyeSeparation, nearClip, farClip;
   double t;    // simulation time
+  int frame_num; 
   unsigned n;  // "frame" number
   float focalLength;
   Pose pose;   // for navigation
@@ -51,6 +52,7 @@ struct State {
 void InitState(State* state){
   state->currentLeafSize = LEAF_COUNT;
   state->n = 0;
+  state->frame_num = 0;
   state->nearClip = 0.1;
   state->farClip = 1000;
   state->focalLength = 6.f;

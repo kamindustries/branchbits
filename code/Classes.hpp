@@ -19,6 +19,7 @@ struct Branch {
 
   int group = 0; // growthIteration, which was stored in newPosGroup. could be used as generation
   int siblings = 0; // newBranchesVec.size(), which was stored in numNewBranches
+  int children = 0;
 
   Branch(Branch* p) {
     Parent = p;

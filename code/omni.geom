@@ -2,6 +2,37 @@
 #extension GL_EXT_geometry_shader4 : enable // it is extension in 120
 
 uniform float frame_num;
+varying in vec4 color[];
+// varying in vec3 normal[], lightDir[], eyeVec[];
+
+varying out vec4 fcolor;
+// varying out vec3 fnormal, flightDir;//, feyeVec;
+
+// dividing 2PI by 8, 9 values for rotating fully
+uniform float sin_lkup[] = float[](
+  0.00000000,
+  0.70710678,
+  1.00000000,
+  0.70710678,
+  0.00000000,
+  -0.70710678,
+  -1.00000000,
+  -0.70710678,
+  0.00000000
+);
+
+uniform float cos_lkup[] = float[](
+  1.00000000,
+  0.70710678,
+  0.00000000,
+  -0.70710678,
+  -1.00000000,
+  -0.70710678,
+  0.00000000,
+  0.70710678,
+  1.00000000
+);
+
 
 float rand(vec2 co){
   return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
@@ -192,9 +223,9 @@ float pnoise(vec3 P, vec3 rep)
 
 
 
+
 void main(){
-  // vec4 v0 = vec4(gl_PositionIn[0].xyz, 0.5);
-  // vec4 v1 = vec4(gl_PositionIn[1].xyz, 0.5);
+
   vec4 vtx[2];
   vtx[0] = vec4(gl_PositionIn[0].xyz, 0.5);
   vtx[1] = vec4(gl_PositionIn[1].xyz, 0.5);
@@ -222,7 +253,6 @@ void main(){
   vtx[1].xyz += (v1_norm * noise_1);
   // // end noise
 
-
   // get radius from red channel
   vec4 Cd = gl_FrontColorIn[0];
   float radius[2] = float[2](1.,1.);
@@ -244,55 +274,31 @@ void main(){
   // taper end of this segment to match (sorta) the next one
   radius[1] = radius[0] * .98;
 
-  vec3 rand_dir = vec3(-1.,1.,-2);
 
 
-  for (int i = 0; i < 8; i++){
-    for (int j = 0; j < 2; j++){ // each incoming point
-      float angle = (2 * 3.1459 * float(i)/8.);
+  vec3 dir = gl_PositionIn[0].xyz - gl_PositionIn[1].xyz;
+  // arbitrary dir to gen cross product
+  vec3 other_dir = vec3(-1.2,1.7,-2.4) - gl_PositionIn[1].xyz;
 
-      vec3 axis1 = normalize(cross(vtx[0].xyz - vtx[1].xyz, rand_dir)) * radius[j];
-      vec3 axis2 = normalize(cross(vtx[0].xyz - vtx[1].xyz, axis1)) * radius[j];
+  vec3 axis1 = normalize(cross(dir, other_dir));
+  vec3 axis2 = normalize(cross(dir, axis1));
+  
+  // inlcude i == 8 for closing the loop
+  for (int i = 0; i <= 8; i++) {
+    for (int j = 0; j < 2; j++) {
+      vec4 p = vec4(axis1 * cos_lkup[i] + axis2 * sin_lkup[i], 0.5);
 
-      vec3 rot_cos = axis1 * cos(angle);
-      vec3 rot_sin = axis2 * sin(angle);
-      vec3 new_axis = (rot_cos + rot_sin);
-
-      vec4 p = vec4(new_axis, 0.5);
-
-      gl_Position = gl_ModelViewProjectionMatrix * (vtx[j] + p);
+      fcolor = color[j];
+      gl_Position = gl_PositionIn[j] + p * radius[j];
 
       // assign z depth to green channel for use in fragment
       vec4 Ci = gl_FrontColorIn[j];
       Ci.g = 1.-(pow(gl_Position.z, 1.5) * .1)*.1;
       gl_FrontColor = Ci;
+
       EmitVertex();
-    }
-    // Have to connect back to when angle = 0 to close the tube
-    // otherwise there's a black hole on the end
-    if (i == 7) {
-      for (int j = 0; j < 2; j++){
-        float angle = 0.;
-        vec3 axis1 = normalize(cross(vtx[0].xyz - vtx[1].xyz, rand_dir)) * radius[j];
-        vec3 axis2 = normalize(cross(vtx[0].xyz - vtx[1].xyz, axis1)) * radius[j];
-
-        vec3 rot_cos = axis1 * cos(angle);
-        vec3 rot_sin = axis2 * sin(angle);
-        vec3 new_axis = (rot_cos + rot_sin);
-
-        vec4 p = vec4(new_axis, 0.5);
-
-        gl_Position = gl_ModelViewProjectionMatrix * (vtx[j] + p);
-
-        // assign z depth to green channel for use in fragment
-        vec4 Ci = gl_FrontColorIn[j];
-        Ci.g = 1.-(pow(gl_Position.z, 1.5) * .1)*.1;
-        gl_FrontColor = Ci;
-        EmitVertex();
-      }
     }
   }
 
   EndPrimitive();
-
 }

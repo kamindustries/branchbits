@@ -79,11 +79,15 @@ varying vec4 color;
 // varying vec3 normal, lightDir; //, eyeVec;
 
 void main() {
-  color = gl_Color;
+  vec4 Cd = gl_Color;
+  // Cd.g = 1. - (gl_Vertex.z * 0.00025)+0.1;
+
+  color = Cd;
   vec4 vertex = gl_ModelViewMatrix * gl_Vertex;
 
-  gl_FrontColor = gl_Color;
-  gl_BackColor = gl_Color;
+
+  gl_FrontColor = Cd;
+  gl_BackColor = Cd;
   
   // normal = gl_NormalMatrix * gl_Normal;
   // vec3 V = vertex.xyz;

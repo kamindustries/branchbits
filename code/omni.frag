@@ -1,5 +1,15 @@
-uniform sampler2D texSampler0;
+#version 120
+
+uniform float lighting;
+uniform float texture;
+uniform sampler2D texture0;
+
 uniform float frame_num;
+varying vec4 fcolor;
+// varying vec3 fnormal, flightDir, feyeVec;
+
+// varying vec4 color;
+// varying vec3 normal, lightDir, eyeVec;
 
 ///////////////////////////////////////////////////////////////////////
 // F U N C T I O N S
@@ -158,8 +168,12 @@ vec3 bch2RGB(vec3 _bch){
 }
 // END FUNCTIONS
 
-// START THE SHADER FINALLY
-void main(){
+
+
+void main() {
+  // yes, doing some dumb thing to use 'texture' and 'lighting'
+  // they should be in omnin context.
+  // but they will always be 0
 
   vec4 Cd = gl_Color;
 
@@ -168,7 +182,7 @@ void main(){
   float w_amp = 1.;
   float w_freq = 2.;
   // this matches sin to same one controlling brightness in frag
-  Cd.r += pow(((sin((phase - phase_offset) * w_freq) + .5) * w_amp), 3.); 
+  Cd.r += pow(((sin((phase - phase_offset) * w_freq) + 1.) * w_amp), 3.); 
 
   Cd.r += pow(1.-gl_Color.r, 10.) * 0.5; // high power gives bright tips with nice falloff
   Cd.r *= Cd.g; // apply z-depth darkening
@@ -185,6 +199,17 @@ void main(){
 
   Cd.rgb = bch2RGB(Cd.rgb);
 
-  gl_FragColor = Cd;
-  // gl_FragColor = texture2D(texSampler0, gl_TexCoord[0].xy) * gl_Color;
+
+  vec4 colorMixed;
+  if (texture > 0.0) {
+    vec4 textureColor = texture2D(texture0, gl_TexCoord[0].st);
+    // colorMixed = mix(color, textureColor, texture);
+    vec4 pink_color = vec4(1.,0.,1.,1.); // pink lets us know its in texture mode
+    colorMixed = mix(pink_color, pink_color, texture);
+  } else {
+    // colorMixed = color;
+    colorMixed = Cd;
+  }
+
+  gl_FragColor = mix(colorMixed, colorMixed, lighting);
 }

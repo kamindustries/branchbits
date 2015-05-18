@@ -153,7 +153,7 @@ inline bool OmniStereoGraphicsRenderer1::onCreate() {
   */
 
   SearchPaths searchPaths;
-  searchPaths.addSearchPath("./testing_omni", true);
+  searchPaths.addSearchPath("./", true);
   File vPointSprite(searchPaths.find("omni.vert"), "r", true);
   File fPointSprite(searchPaths.find("omni.frag"), "r", true);
   File gPointSprite(searchPaths.find("omni.geom"), "r", true);

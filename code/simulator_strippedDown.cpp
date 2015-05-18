@@ -200,7 +200,7 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     //
     for (int i = 0; i < m_tree.vertices().size(); i+=2) {
       // if growth iteration of branch group matches animation step
-      if (branchVec[i/2].group == animStep) {
+      if (branchVec[i/2]->group == animStep) {
 
         if (m_tree.vertices()[i+1] != newPos_tree[i/2]) {          
 
@@ -212,24 +212,24 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
           if (abs(dist_to_final) <= .001) {
 
             // check if close enough to a leaf to change its color
-            for (int j=0; j<leaves.size(); j++){
-              Vec3f direction = leaves[j].Position - branchVec[i/2].Position; 
-              float distance = direction.mag();
+            // for (int j=0; j<leaves.size(); j++){
+            //   Vec3f direction = leaves[j].Position - branchVec[i/2]->Position; 
+            //   float distance = direction.mag();
 
-              if (distance <= minDistance) {
-                state->leafColor[j] = leafColorHit;
-                state->refreshLeaves = 1;
+            //   if (distance <= minDistance) {
+            //     state->leafColor[j] = leafColorHit;
+            //     state->refreshLeaves = 1;
 
-                // set freqency of this leaf's sine wave
-                setLeafFreq(j);
-              }
-            }
+            //     // set freqency of this leaf's sine wave
+            //     setLeafFreq(j);
+            //   }
+            // }
 
             m_tree.vertices()[i+1] = newPos_tree[i/2];
 
             // figuring out angles n stuff to set branch frequencies 
             float randRange = animStep * .2;
-            sine[i%NUM_SINE].freq    ( 100 + animStep * rnd::uniform(1.0f, branchVec[i/2].siblings / 4.0f) );
+            sine[i%NUM_SINE].freq    ( 100 + animStep * rnd::uniform(1.0f, branchVec[i/2]->siblings / 4.0f) );
             // sine[(i+1)%NUM_SINE].freq( 100 + animStep * rnd::uniform(1.0f, branchVec[i/2].siblings / 4.0f) );
             // because numNewBranches was pushed four times per branch
             
@@ -244,15 +244,15 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
         }
 
         // Send current tree vertex buffer to state (omni render)
-        state->treePos[i] = m_tree.vertices()[i];
+        // state->treePos[i] = m_tree.vertices()[i]; // !!!!!!!!!!!!!!!!!!!!!!!!!!!
       }
 
-      if (branchVec[i/2].siblings == animFinishedCheck) {
+      if (branchVec[i/2]->siblings == animFinishedCheck) {
         if (animStep < growthIteration - 5) {
           time = 0;
           animFinishedCheck = 0;
           animStep++;
-          cout << "Anim step: " << animStep << endl;
+          // cout << "Anim step: " << animStep << endl;
         }
       }
     }
@@ -264,6 +264,7 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     }
 
 
+    state->frame_num = frame_num;
     state->t += dt;
     state->n++;
     state->pose = nav();
