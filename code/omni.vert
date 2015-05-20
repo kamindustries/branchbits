@@ -75,14 +75,14 @@ vec4 omni_render(in vec4 vertex) {
   return vertex;
 }
 
-varying vec4 color;
+// varying vec4 color;
 // varying vec3 normal, lightDir; //, eyeVec;
 
 void main() {
   vec4 Cd = gl_Color;
   // Cd.g = 1. - (gl_Vertex.z * 0.00025)+0.1;
 
-  color = Cd;
+  // color = Cd;
   vec4 vertex = gl_ModelViewMatrix * gl_Vertex;
 
 

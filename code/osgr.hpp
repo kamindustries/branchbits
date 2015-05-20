@@ -154,6 +154,7 @@ inline bool OmniStereoGraphicsRenderer1::onCreate() {
 
   SearchPaths searchPaths;
   searchPaths.addSearchPath("./", true);
+  searchPaths.addSearchPath("./branchbits/code", false);
   File vPointSprite(searchPaths.find("omni.vert"), "r", true);
   File fPointSprite(searchPaths.find("omni.frag"), "r", true);
   File gPointSprite(searchPaths.find("omni.geom"), "r", true);
@@ -199,11 +200,10 @@ inline bool OmniStereoGraphicsRenderer1::onFrame() {
   FPS::onFrame();
 
   // if running on a laptop?
-  //
   nav().step();
-  Vec3d v = nav().pos();
-  Quatd q = nav().quat();
-  oscSend().send("/pose", v.x, v.y, v.z, q.x, q.y, q.z, q.w);
+  // Vec3d v = nav().pos();
+  // Quatd q = nav().quat();
+  // oscSend().send("/pose", v.x, v.y, v.z, q.x, q.y, q.z, q.w);
   // nav().print();
 
   onAnimate(dt);

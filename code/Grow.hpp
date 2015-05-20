@@ -3,11 +3,11 @@
 #include <vector>
 
 #include "allocore/io/al_App.hpp"
-#include "allocore/graphics/al_Mesh.hpp"
+// #include "allocore/graphics/al_Mesh.hpp"
 
-#include "Classes.hpp"
-#include "constants.hpp"
 #include "common.hpp"
+#include "constants.hpp"
+#include "Classes.hpp"
 
 using namespace al;
 using namespace std;
@@ -18,17 +18,17 @@ vector<Branch*> newBranchesVec;
 vector<Leaf> leaves;
 vector<Vec3f> newPos_tree;
 
-Mesh m_root;
+// Mesh m_root;
 Mesh m_tree;
 
-bool dynamicLeaves = false;
+// bool dynamicLeaves = false;
 bool doneGrowing = false;
 bool doneAnimating = false;
 bool animPrepareToStop = false;
 int growthIteration = 0;
 int animStep = 0;
 int animToggle = 0;
-int animFinishedCheck = 0;
+// int animFinishedCheck = 0;
 int animStopOnStep = 0;
 
 ///////////////////////////////////////////////////////////////////////
@@ -36,24 +36,19 @@ int animStopOnStep = 0;
 ///////////////////////////////////////////////////////////////////////
 
 // simple solution for not losing Root. make it global.
-// Branch Root(NULL, rootPosition, Vec3f(0,1,0), 0, false, branchWidth); 
-Branch Root(NULL, rootPosition, Vec3f(0,1,0), -5, false, branchWidth);
-
+Branch* Root;
 void Trunk(State* state){
-  Branch* Root = new Branch(NULL, rootPosition, Vec3f(0,1,0), -5, false, branchWidth);
+  Root = new Branch(NULL, rootPosition, Vec3f(0,1,0), -5, false, branchWidth);
   Root->group = -1;
 
-  // Set mesh to be treated as lines, only need to call this once. Turn off to render points
-  m_tree.primitive(Graphics::LINES);
-
   // just put down one branch/two verts to start
-  // Branch trunk(current.Parent, current.Position + Root.GrowDir * branchLength);
-  Branch* trunk = new Branch(Root, Root->Position + Root->GrowDir * branchLength);
+  // Branch* trunk = new Branch(Root, Root->Position + Root->GrowDir * branchLength);
+  Branch* trunk = new Branch(Root, Root->Position);
   trunk->group = -1;
   trunk->siblings = 1;
-  trunk->Width = 0.0001;
+  trunk->Width = branchWidth;
 
-  cout << (trunk->Parent)->GrowCount << endl;
+  // cout << (trunk->Parent)->GrowCount << endl;
 
   m_tree.vertex(trunk->Parent->Position);
   m_tree.vertex(trunk->Position);
@@ -63,7 +58,7 @@ void Trunk(State* state){
   newPos_tree.push_back(trunk->Position); // mesh for animation
   branchVec.push_back(trunk);
 
-  state->pSize = m_root.vertices().size();
+  // state->pSize = m_root.vertices().size();
 }
 
 ///////////////////////////////////////////////////////////////////////
@@ -80,7 +75,7 @@ void Grow(State* state){
   }
 
   // to stop grow
-  if (leavesSkipped >= state->currentLeafSize * 0.9 && dynamicLeaves == false) {
+  if (leavesSkipped >= state->currentLeafSize * 0.9) {// && dynamicLeaves == false) {
     animPrepareToStop = true;
     animStopOnStep = growthIteration;
     animToggle = false;
@@ -101,7 +96,7 @@ void Grow(State* state){
     if (li.skip) continue;
 
     li.ClosestBranch = NULL;
-    float curr_min_dist = maxDistance; // start with max dist, save anything closer
+    float curr_min_dist = maxDistance; // start with max, save anything closer
     Vec3f min_dir = Vec3f(0, 0, 0);
 
     // find nearest branch for this leaf
@@ -110,7 +105,7 @@ void Grow(State* state){
       Vec3f direction = li.Position - b->Position;
       float distance = direction.mag();
 
-      // skip this leaf next time if branches are too close. no more leaf growing!!
+      // skip next time if branches too close. no more growing for this leaf!!
       if (distance <= minDistance) {
         li.skip = true;
         break;
@@ -124,7 +119,7 @@ void Grow(State* state){
       }
     }
  
-    // tell the branch that this leaf would like it to grow, and in what direction
+    // tell the closest branch gorw to this leaf
     if (!li.skip && li.ClosestBranch != NULL) {
       Vec3f dirNorm = min_dir.normalize();
       li.ClosestBranch->GrowDir += dirNorm;

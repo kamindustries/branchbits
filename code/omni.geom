@@ -2,10 +2,10 @@
 #extension GL_EXT_geometry_shader4 : enable // it is extension in 120
 
 uniform float frame_num;
-varying in vec4 color[];
+// varying in vec4 color[];
 // varying in vec3 normal[], lightDir[], eyeVec[];
 
-varying out vec4 fcolor;
+// varying out vec4 fcolor;
 // varying out vec3 fnormal, flightDir;//, feyeVec;
 
 // dividing 2PI by 8, 9 values for rotating fully
@@ -288,7 +288,7 @@ void main(){
     for (int j = 0; j < 2; j++) {
       vec4 p = vec4(axis1 * cos_lkup[i] + axis2 * sin_lkup[i], 0.5);
 
-      fcolor = color[j];
+      // fcolor = color[j];
       gl_Position = gl_PositionIn[j] + p * radius[j];
 
       // assign z depth to green channel for use in fragment
