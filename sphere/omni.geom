@@ -274,8 +274,9 @@ void main(){
   // taper end of this segment to match (sorta) the next one
   radius[1] = radius[0] * .98;
 
-
-
+/* -----------------------------------------------------------------------------
+    now start adding vertices
+----------------------------------------------------------------------------- */
   vec3 dir = gl_PositionIn[0].xyz - gl_PositionIn[1].xyz;
   // arbitrary dir to gen cross product
   vec3 other_dir = vec3(-1.2,1.7,-2.4) - gl_PositionIn[1].xyz;

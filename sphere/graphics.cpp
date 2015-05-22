@@ -55,12 +55,6 @@ struct Testing : OmniStereoGraphicsRenderer1 {
     lens().near(state->nearClip);
     lens().far(state->farClip);
     lens().eyeSep(state->eyeSeparation);
-    
-    // omni().clearColor() = RGB(0, 0, 0);
-    // omni().sphereRadius(30);
-    // lens().near(10);
-    // lens().far(100);
-    // lens().eyeSep(0);
 
     g.polygonMode(Graphics::FILL);
     g.depthTesting(true);

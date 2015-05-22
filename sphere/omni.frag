@@ -169,10 +169,9 @@ vec3 bch2RGB(vec3 _bch){
 // END FUNCTIONS
 
 
-
 void main() {
   // yes, doing some dumb thing to use 'texture' and 'lighting'
-  // they should be in omnin context.
+  // they should be in omni context.
   // but they will always be 0
 
   vec4 Cd = gl_Color;
