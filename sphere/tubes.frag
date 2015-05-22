@@ -166,17 +166,20 @@ void main(){
   float phase = abs(1.-Cd.r) * 1.;
   float phase_offset = frame_num * 0.01;
   float w_amp = 1.;
-  float w_freq = 2.;
+  float w_freq = 1.;
   // this matches sin to same one controlling brightness in frag
-  Cd.r += pow(((sin((phase - phase_offset) * w_freq) + .5) * w_amp), 3.); 
+  Cd.r += pow(((sin((phase + phase_offset) * w_freq) + .0) * w_amp), 3.); 
 
   Cd.r += pow(1.-gl_Color.r, 10.) * 0.5; // high power gives bright tips with nice falloff
   Cd.r *= Cd.g; // apply z-depth darkening
+  // Cd.r = Cd.g; // DELETE ME
+
   if (Cd.r >= 1.) Cd.r = 1.;
   if (Cd.r <= 0.05) Cd.r = 0.05;
 
   // saturation
   Cd.g = 1.2-Cd.r;
+  // Cd.g = 0.0; // DELETE ME
 
   // hue
   Cd.b = pow(1.-gl_Color.r,10.) * 2.1459;

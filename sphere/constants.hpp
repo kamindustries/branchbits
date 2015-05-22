@@ -6,6 +6,7 @@ using namespace al;
 using namespace std;
 
 const float anim_speed = 1.4;
+// const float anim_speed = 2.4;
 const float treeHeight = 2.5;   
 const float trunkHeight = 1.;
 const float minDistance = .08;

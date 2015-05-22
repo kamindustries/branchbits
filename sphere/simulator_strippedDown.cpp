@@ -339,7 +339,7 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
 
     while (io()) {
       // updateAudio(state->audioGain);
-      float s = samplePlayer() / 2.0;
+      float s = samplePlayer() / 50.0;
       tap.writeSample(s);
     }
 
