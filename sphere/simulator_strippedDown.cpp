@@ -29,9 +29,9 @@
 using namespace al;
 using namespace std;
 
-std::string vertexCode();
-std::string fragmentCode();
-std::string geometryCode();
+// std::string vertexCode();
+// std::string fragmentCode();
+// std::string geometryCode();
 
 // Main app
 struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
@@ -405,6 +405,7 @@ int main() {
   app.start();
 }
 
+/*
 std::string vertexCode() {
   return "";
 //   R"(
@@ -918,3 +919,5 @@ std::string geometryCode() {
 // }
 //   )";
 }
+
+*/
