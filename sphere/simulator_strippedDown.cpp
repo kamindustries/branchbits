@@ -146,21 +146,21 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
   void onCreate(const ViewpointWindow& w) {
     cout<<"Loading shaders..."<<endl;
 
-    shaderV.source(vertexCode(), Shader::VERTEX).compile().printLog();
-    shaderF.source(fragmentCode(), Shader::FRAGMENT).compile().printLog();
-    shaderG.source(geometryCode(), Shader::GEOMETRY).compile().printLog();
+    // shaderV.source(vertexCode(), Shader::VERTEX).compile().printLog();
+    // shaderF.source(fragmentCode(), Shader::FRAGMENT).compile().printLog();
+    // shaderG.source(geometryCode(), Shader::GEOMETRY).compile().printLog();
 
     // load shaders from files
-    // SearchPaths searchPaths;
-    // searchPaths.addSearchPath("./branchbits/sphere", false);
+    SearchPaths searchPaths;
+    searchPaths.addSearchPath("./branchbits/sphere", false);
     
-    // File vPointSprite(searchPaths.find("tubes.vert"), "r", true);
-    // File fPointSprite(searchPaths.find("tubes.frag"), "r", true);
-    // File gPointSprite(searchPaths.find("tubes.geom"), "r", true);
+    File vPointSprite(searchPaths.find("tubes.vert"), "r", true);
+    File fPointSprite(searchPaths.find("tubes.frag"), "r", true);
+    File gPointSprite(searchPaths.find("tubes.geom"), "r", true);
 
-    // shaderV.source(vPointSprite.readAll(), Shader::VERTEX).compile().printLog();
-    // shaderF.source(fPointSprite.readAll(), Shader::FRAGMENT).compile().printLog();
-    // shaderG.source(gPointSprite.readAll(), Shader::GEOMETRY).compile().printLog();
+    shaderV.source(vPointSprite.readAll(), Shader::VERTEX).compile().printLog();
+    shaderF.source(fPointSprite.readAll(), Shader::FRAGMENT).compile().printLog();
+    shaderG.source(gPointSprite.readAll(), Shader::GEOMETRY).compile().printLog();
 
     shaderP.attach(shaderF);
     shaderP.attach(shaderV);
