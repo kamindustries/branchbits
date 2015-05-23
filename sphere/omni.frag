@@ -185,6 +185,7 @@ void main() {
 
   Cd.r += pow(1.-gl_Color.r, 10.) * 0.5; // high power gives bright tips with nice falloff
   Cd.r *= Cd.g; // apply z-depth darkening
+  
   if (Cd.r >= 1.) Cd.r = 1.;
   if (Cd.r <= 0.05) Cd.r = 0.05;
 

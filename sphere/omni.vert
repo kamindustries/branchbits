@@ -80,19 +80,15 @@ vec4 omni_render(in vec4 vertex) {
 
 void main() {
   vec4 Cd = gl_Color;
-  // Cd.g = 1. - (gl_Vertex.z * 0.00025)+0.1;
-
-  // color = Cd;
-  vec4 vertex = gl_ModelViewMatrix * gl_Vertex;
-
-
   gl_FrontColor = Cd;
-  gl_BackColor = Cd;
-  
+  // gl_BackColor = Cd;
+  // color = Cd;
+
   // normal = gl_NormalMatrix * gl_Normal;
   // vec3 V = vertex.xyz;
   // eyeVec = normalize(-V);
   // lightDir = normalize(vec3(gl_LightSource[0].position.xyz - V));
   gl_TexCoord[0] = gl_MultiTexCoord0;
+  vec4 vertex = gl_ModelViewMatrix * gl_Vertex;
   gl_Position = omni_render(vertex);
 }

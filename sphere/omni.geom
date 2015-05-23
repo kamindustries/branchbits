@@ -221,9 +221,6 @@ float pnoise(vec3 P, vec3 rep)
 // END NOISE
 ///////////////////////////////////////////////////////////////////////
 
-
-
-
 void main(){
 
   vec4 vtx[2];
@@ -231,15 +228,17 @@ void main(){
   vtx[1] = vec4(gl_PositionIn[1].xyz, 0.5);
   // do some wiggling
   // offset = animation speed
-  vec3 offset = vec3(frame_num*.05);
+  float n_speed = 0.009;
+  vec3 offset = vec3(frame_num * n_speed);
 
   // get 1D noise for each point position
   // outside multiplier = amplitude
   // poisition multiplier = frequency
   // 2nd parameter = noise scale (i think)
-  float n_amplitude = 0.;
-  float noise_0 = n_amplitude * pnoise((vtx[0].xyz + offset) * 0.5, vec3(100.));
-  float noise_1 = n_amplitude * pnoise((vtx[1].xyz + offset) * 0.5, vec3(100.));
+  float n_amplitude = 0.08;
+  float n_freq = 1.5;
+  float noise_0 = n_amplitude * pnoise((vtx[0].xyz + offset) * n_freq, vec3(100.));
+  float noise_1 = n_amplitude * pnoise((vtx[1].xyz + offset) * n_freq, vec3(100.));
 
   // get normalized point poisition. this is what direction we will perturb the original by
   // there's probably a smarter vector we should be using for this
@@ -266,10 +265,10 @@ void main(){
   float phase = abs(1.-Cd.r) * 1.;
   // float phase_offset = frame_num * 0.001;
   float phase_offset = frame_num * 0.01;
-  float w_amp = .3;
-  float w_freq = 2.;
+  float w_amp = .42;
+  float w_freq = 1.;
   // this matches sin to same one controlling brightness in frag
-  radius[0] *= pow(((sin((phase - phase_offset) * w_freq) + 1.) * w_amp), 3.); 
+  radius[0] *= pow(((sin((phase - phase_offset) * w_freq) + 1.) * w_amp), 5.);
   radius[0] += min_radius;
   // taper end of this segment to match (sorta) the next one
   radius[1] = radius[0] * .98;
@@ -278,7 +277,7 @@ void main(){
     now start adding vertices
 ----------------------------------------------------------------------------- */
   vec3 dir = gl_PositionIn[0].xyz - gl_PositionIn[1].xyz;
-  // arbitrary dir to gen cross product
+  // use arbitrary dir to gen cross product
   vec3 other_dir = vec3(-1.2,1.7,-2.4) - gl_PositionIn[1].xyz;
 
   vec3 axis1 = normalize(cross(dir, other_dir));
@@ -287,10 +286,10 @@ void main(){
   // inlcude i == 8 for closing the loop
   for (int i = 0; i <= 8; i++) {
     for (int j = 0; j < 2; j++) {
-      vec4 p = vec4(axis1 * cos_lkup[i] + axis2 * sin_lkup[i], 0.5);
+      vec3 p = axis1 * cos_lkup[i] + axis2 * sin_lkup[i];
 
       // fcolor = color[j];
-      gl_Position = gl_PositionIn[j] + p * radius[j];
+      gl_Position = gl_PositionIn[j] + vec4(p * radius[j], 0.0);
 
       // assign z depth to green channel for use in fragment
       vec4 Ci = gl_FrontColorIn[j];

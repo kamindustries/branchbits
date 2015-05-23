@@ -224,7 +224,6 @@ void main(){
   vtx[1].xyz += (v1_norm * noise_1);
   // // end noise
 
-
   // get radius from red channel
   vec4 Cd = gl_FrontColorIn[0];
   float radius[2] = float[2](1.,1.);
