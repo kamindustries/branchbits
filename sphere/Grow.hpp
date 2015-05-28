@@ -209,7 +209,8 @@ void Grow(State* state){
   cout << "  |  leaves: " << state->currentLeafSize << endl;
   cout << "new branches: " << newBranchesVec.size();
   cout << "  |  branches: " << branchVec.size();
-  cout << "  |  vertices: " << m_tree.vertices().size() << endl;
+  cout << "  |  vertices: " << m_tree.vertices().size();
+  cout << "  |  colors: " << m_tree.colors().size() << endl;
 
   growthIteration++;
 } // end of Grow()

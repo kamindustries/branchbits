@@ -46,7 +46,10 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
   bool threadDone = false;
 
   SoundSource tap;
-  gam::SamplePlayer<> samplePlayer;
+  gam::SamplePlayer<> samplePlayer0;
+  gam::SamplePlayer<> samplePlayer1;
+
+  int PLAYING = 0;
 
   SpaceCol() :  maker(Simulator::defaultBroadcastIP()),
                 InterfaceServerClient(Simulator::defaultInterfaceServerIP()) {
@@ -109,30 +112,56 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     cout << "Here are all the search paths:" << endl;
     searchPaths.print();
 
-    const char *soundFileName = "branches_substrate_1.L.wav";
+    // const char *soundFileName0 = "branches_substrate_1.L.wav";
+    const char *soundFileName0 = "branches_sound_3min_v1.wav";
 
-    string soundFilePath = searchPaths.find(soundFileName).filepath();
-    if (soundFilePath == "") {
-      cerr << "FAIL: your sound file " << soundFileName << " was not found in the file path." << endl;
+    string soundFilePath0 = searchPaths.find(soundFileName0).filepath();
+    if (soundFilePath0 == "") {
+      cerr << "FAIL: your sound file " << soundFileName0 << " was not found in the file path." << endl;
       exit(1);
     }
 
-    cout << "Full path to your sound file is " << soundFilePath << endl;
-    if (!samplePlayer.load(soundFilePath.c_str())) {
+    cout << "Full path to your sound file is " << soundFilePath0 << endl;
+    if (!samplePlayer0.load(soundFilePath0.c_str())) {
       cerr << "FAIL: your sound file did not load." << endl;
       exit(1);
     }
 
-    cout << "Loaded sound file; it has " << samplePlayer.size()  << " samples." << endl;
-    if (samplePlayer.channels() != 1) {
-      cerr << "FAIL: your sound file has " << samplePlayer.channels() 
+    cout << "Loaded sound file; it has " << samplePlayer0.size()  << " samples." << endl;
+    if (samplePlayer0.channels() != 1) {
+      cerr << "FAIL: your sound file has " << samplePlayer0.channels() 
            << " channels but I can only handle mono; sorry!"  << endl;
       exit(1);
     }
 
     // don't play in the beginning
-    samplePlayer.reset();
-    samplePlayer.phase(1.0);
+    samplePlayer0.reset();
+    samplePlayer0.phase(1.0);
+
+    const char *soundFileName1 = "branches_sound_3min_v2.wav";
+
+    string soundFilePath1 = searchPaths.find(soundFileName1).filepath();
+    if (soundFilePath1 == "") {
+      cerr << "FAIL: your sound file " << soundFileName1 << " was not found in the file path." << endl;
+      exit(1);
+    }
+
+    cout << "Full path to your sound file is " << soundFilePath1 << endl;
+    if (!samplePlayer1.load(soundFilePath1.c_str())) {
+      cerr << "FAIL: your sound file did not load." << endl;
+      exit(1);
+    }
+
+    cout << "Loaded sound file; it has " << samplePlayer1.size()  << " samples." << endl;
+    if (samplePlayer1.channels() != 1) {
+      cerr << "FAIL: your sound file has " << samplePlayer1.channels() 
+           << " channels but I can only handle mono; sorry!"  << endl;
+      exit(1);
+    }
+
+    // don't play in the beginning
+    samplePlayer1.reset();
+    samplePlayer1.phase(1.0);
   }
 
   ///////////////////////////////////////////////////////////////////////
@@ -329,7 +358,14 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     tap.pose(state->pose);
 
     while (io()) {
-      float s = samplePlayer() / 50.0;
+
+      float s = 0;
+      if (PLAYING == 1) {
+        s = samplePlayer0() / 50.0;
+      } else if (PLAYING == 2) {
+        s = samplePlayer1() / 50.0;
+      }
+
       tap.writeSample(s);
     }
 
@@ -371,17 +407,34 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
       state->print();
     }
 
-    if (k.key() == Keyboard::RETURN) {
-      if (samplePlayer.pos() >= samplePlayer.frames() - 1) {
+    if (k.key() == '1') {
+      PLAYING = 1;
+      samplePlayer1.phase(1.0);
+      if (samplePlayer0.pos() >= samplePlayer0.frames() - 1) {
         // samplePlayer is currently stopped at the end point, so restart
-        samplePlayer.reset();
+        samplePlayer0.reset();
         cout << "Playing entire sample..." << endl;
       } else {
         // samplePlayer is currently playing, so shut it off
-        samplePlayer.phase(1.0);
+        samplePlayer0.phase(1.0);
         cout << "Stop playing entire sample." << endl;
       }
     }
+
+    if (k.key() == '2') {
+      PLAYING = 2;
+      samplePlayer0.phase(1.0);
+      if (samplePlayer1.pos() >= samplePlayer1.frames() - 1) {
+        // samplePlayer is currently stopped at the end point, so restart
+        samplePlayer1.reset();
+        cout << "Playing entire sample..." << endl;
+      } else {
+        // samplePlayer is currently playing, so shut it off
+        samplePlayer1.phase(1.0);
+        cout << "Stop playing entire sample." << endl;
+      }
+    }
+
 
   }
 };
