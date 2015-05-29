@@ -31,7 +31,7 @@ class OmniStereoGraphicsRenderer1 : public Window,
   virtual std::string geometryCode();
 
   void start();
-  void initWindow(const Window::Dim& dims = Window::Dim(1600, 800),
+  void initWindow(const Window::Dim& dims = Window::Dim(800, 400),
                   const std::string title = "OmniStereoGraphicsRenderer1",
                   double fps = 60,
                   Window::DisplayMode mode = Window::DEFAULT_BUF);
