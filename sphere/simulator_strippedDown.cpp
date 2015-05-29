@@ -407,6 +407,30 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
       state->print();
     }
 
+    if (k.key() == 'g' || k.key() == 'G') {
+      // resent mode
+
+      state->refreshLeaves = 1;
+
+      if (animStep == 0) animStep++;
+      if (animToggle == false) {animToggle = true; state->audioGain = 0.097; }
+      else if (animToggle == true) {animToggle = false; state->audioGain = 0.0; }
+
+      cout << "Anim Step: " << animStep << "?" << endl;
+
+      PLAYING = 1;
+      samplePlayer1.phase(1.0);
+      if (samplePlayer0.pos() >= samplePlayer0.frames() - 1) {
+        // samplePlayer is currently stopped at the end point, so restart
+        samplePlayer0.reset();
+        cout << "Playing entire sample..." << endl;
+      } else {
+        // samplePlayer is currently playing, so shut it off
+        samplePlayer0.phase(1.0);
+        cout << "Stop playing entire sample." << endl;
+      }
+    }
+
     if (k.key() == '1') {
       PLAYING = 1;
       samplePlayer1.phase(1.0);
