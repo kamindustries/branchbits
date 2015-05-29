@@ -181,7 +181,8 @@ void main() {
   float w_amp = 1.;
   float w_freq = 2.;
   // this matches sin to same one controlling brightness in frag
-  Cd.r += pow(((sin((phase - phase_offset) * w_freq) + 1.) * w_amp), 3.); 
+  Cd.r += pow(((sin((phase + phase_offset) * w_freq) + .0) * w_amp), 3.); 
+  // Cd.r += pow(((sin((phase - phase_offset) * w_freq) + 1.) * w_amp), 3.); 
 
   Cd.r += pow(1.-gl_Color.r, 10.) * 0.5; // high power gives bright tips with nice falloff
   Cd.r *= Cd.g; // apply z-depth darkening

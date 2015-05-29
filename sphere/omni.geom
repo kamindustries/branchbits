@@ -245,8 +245,7 @@ void main(){
   // houdini's noise function takes a vec3 and has the option to output either a float or vec3
   // all the noises I could find output floats. there's probably a trick to get proper vec3 noise
   vec3 v0_norm = normalize(vtx[0].xyz);
-  vec3 v1_norm = normalize(vtx[1].xyz);
-
+  vec3 v1_norm = normalize(vtx[1].xyz); // sa;ldkjf
   // add it to original point position
   vtx[0].xyz += (v0_norm * noise_0);
   vtx[1].xyz += (v1_norm * noise_1);
@@ -289,7 +288,7 @@ void main(){
       vec3 p = axis1 * cos_lkup[i] + axis2 * sin_lkup[i];
 
       // fcolor = color[j];
-      gl_Position = gl_PositionIn[j] + vec4(p * radius[j], 0.0);
+      gl_Position = vtx[j] + vec4(p * radius[j], 0.0);
 
       // assign z depth to green channel for use in fragment
       vec4 Ci = gl_FrontColorIn[j];
