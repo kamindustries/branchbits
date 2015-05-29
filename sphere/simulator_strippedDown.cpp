@@ -276,6 +276,7 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     time += dt;
     // animate based on two points starting in the same position. 
     // we will move one of them to its new position to form a branch.
+
     for (int i = 0; i < m_tree.vertices().size(); i+=2) {
       // animate only if growthIteration of branch matches animation step
       if (branchVec[i/2]->group != animStep) continue;
@@ -285,7 +286,6 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
         m_tree.vertices()[i+1] = newPos_tree[i/2];
         continue;
       }
-
       m_tree.vertices()[i+1] = oldPos_tree[i+1] * (1-time) + newPos_tree[i/2] * time;
     }
 
@@ -427,6 +427,30 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
       } else {
         // samplePlayer is currently playing, so shut it off
         samplePlayer0.phase(1.0);
+        cout << "Stop playing entire sample." << endl;
+      }
+    }
+
+    if (k.key() == 'h' || k.key() == 'H') {
+      // resent mode
+
+      state->refreshLeaves = 1;
+
+      if (animStep == 0) animStep++;
+      if (animToggle == false) {animToggle = true; state->audioGain = 0.097; }
+      else if (animToggle == true) {animToggle = false; state->audioGain = 0.0; }
+
+      cout << "Anim Step: " << animStep << "?" << endl;
+
+      PLAYING = 2;
+      samplePlayer0.phase(1.0);
+      if (samplePlayer1.pos() >= samplePlayer1.frames() - 1) {
+        // samplePlayer is currently stopped at the end point, so restart
+        samplePlayer1.reset();
+        cout << "Playing entire sample..." << endl;
+      } else {
+        // samplePlayer is currently playing, so shut it off
+        samplePlayer1.phase(1.0);
         cout << "Stop playing entire sample." << endl;
       }
     }
