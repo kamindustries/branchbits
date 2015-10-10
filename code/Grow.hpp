@@ -31,6 +31,7 @@ int animToggle = 0;
 // int animFinishedCheck = 0;
 int animStopOnStep = 0;
 
+
 ///////////////////////////////////////////////////////////////////////
 // T R U N K
 ///////////////////////////////////////////////////////////////////////
@@ -75,10 +76,11 @@ void Grow(State* state){
   }
 
   // to stop grow
-  if (leavesSkipped >= state->currentLeafSize * 0.9) {// && dynamicLeaves == false) {
-    animPrepareToStop = true;
-    animStopOnStep = growthIteration;
-    animToggle = false;
+  if (leavesSkipped >= state->currentLeafSize * .94 || doneGrowing == true) {// && dynamicLeaves == false) {
+    // animPrepareToStop = true;
+    // animStopOnStep = growthIteration;
+    // animToggle = false;
+    threadDone = true;
 
     cout << "<<" << endl;
     cout << "~~~~~~~~~Done growing!!!" << endl;
@@ -136,7 +138,7 @@ void Grow(State* state){
     Branch* b = branchVec[i];
 
     // since we are looping through all the branches now, it's a good time to increment color
-    Color plus_width = RGB(b->Width, 0, 0);
+    Color plus_width = RGB(b->Width * 0.5, 0, 0);
     m_tree.colors()[i*2] += plus_width;
     m_tree.colors()[(i*2)+1] += plus_width;
 
@@ -180,6 +182,7 @@ void Grow(State* state){
     branchAdded = true;
 
     Branch* p = b->Parent;
+
 
     // increase width
     // float depth = 1;

@@ -109,30 +109,30 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     cout << "Here are all the search paths:" << endl;
     searchPaths.print();
 
-    const char *soundFileName = "branches_substrate_1.L.wav";
+    // const char *soundFileName = "branches_substrate_1.L.wav";
 
-    string soundFilePath = searchPaths.find(soundFileName).filepath();
-    if (soundFilePath == "") {
-      cerr << "FAIL: your sound file " << soundFileName << " was not found in the file path." << endl;
-      exit(1);
-    }
+    // string soundFilePath = searchPaths.find(soundFileName).filepath();
+    // if (soundFilePath == "") {
+      // cerr << "FAIL: your sound file " << soundFileName << " was not found in the file path." << endl;
+      // exit(1);
+    // }
 
-    cout << "Full path to your sound file is " << soundFilePath << endl;
-    if (!samplePlayer.load(soundFilePath.c_str())) {
-      cerr << "FAIL: your sound file did not load." << endl;
-      exit(1);
-    }
+    // cout << "Full path to your sound file is " << soundFilePath << endl;
+    // if (!samplePlayer.load(soundFilePath.c_str())) {
+    //   cerr << "FAIL: your sound file did not load." << endl;
+    //   exit(1);
+    // }
 
-    cout << "Loaded sound file; it has " << samplePlayer.size()  << " samples." << endl;
-    if (samplePlayer.channels() != 1) {
-      cerr << "FAIL: your sound file has " << samplePlayer.channels() 
-           << " channels but I can only handle mono; sorry!"  << endl;
-      exit(1);
-    }
+    // cout << "Loaded sound file; it has " << samplePlayer.size()  << " samples." << endl;
+    // if (samplePlayer.channels() != 1) {
+    //   cerr << "FAIL: your sound file has " << samplePlayer.channels() 
+    //        << " channels but I can only handle mono; sorry!"  << endl;
+    //   exit(1);
+    // }
 
-    // don't play in the beginning
-    samplePlayer.reset();
-    samplePlayer.phase(1.0);
+    // // don't play in the beginning
+    // samplePlayer.reset();
+    // samplePlayer.phase(1.0);
   }
 
   ///////////////////////////////////////////////////////////////////////
@@ -143,7 +143,8 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
 
     // load shaders from files
     SearchPaths searchPaths;
-    searchPaths.addSearchPath("./branchbits/sphere", false);
+    // searchPaths.addSearchPath("./branchbits/sphere/", false);
+    searchPaths.addSearchPath("/Users/kurt/AlloProject/branchbits/sphere", false);
     
     File vPointSprite(searchPaths.find("tubes.vert"), "r", true);
     File fPointSprite(searchPaths.find("tubes.frag"), "r", true);
@@ -323,19 +324,19 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
   }
   
   virtual void onSound(AudioIOData& io) {
-    static cuttlebone::Stats fps("onSound()");
-    fps(io.secondsPerBuffer());
+    // static cuttlebone::Stats fps("onSound()");
+    // fps(io.secondsPerBuffer());
 
-    tap.pose(state->pose);
+    // tap.pose(state->pose);
 
-    while (io()) {
-      float s = samplePlayer() / 50.0;
-      tap.writeSample(s);
-    }
+    // while (io()) {
+    //   float s = samplePlayer() / 50.0;
+    //   tap.writeSample(s);
+    // }
 
-    // set listener pose and render audio sources
-    listener()->pose(state->pose);
-    scene()->render(io);
+    // // set listener pose and render audio sources
+    // listener()->pose(state->pose);
+    // scene()->render(io);
   }
 
   virtual void onKeyDown(const ViewpointWindow&, const Keyboard& k){

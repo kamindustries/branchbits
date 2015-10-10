@@ -25,6 +25,8 @@ const Color leafColorUnhit = HSV(.35,.6,.35);
 const Color leafColorHit = HSV(.35,.9,.8);
 const Color groundColor = HSV(.3,.1,.15);
 
+bool threadDone = false;
+
 // const float maxWidthIncrement = 100.f;
 // const float widthIncrement = .15;
 // const float newLeafRadius = .2;
