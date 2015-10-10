@@ -5,7 +5,7 @@
 using namespace al;
 using namespace std;
 
-const float anim_speed = 1.4;
+const float anim_speed = 1.05;  
 // const float anim_speed = 2.4;
 const float treeHeight = 2.5;   
 const float trunkHeight = 1.;
@@ -13,7 +13,7 @@ const float minDistance = .08;
 const float maxDistance = 2.0;
 const float branchLength = .04;
 const float branchWidth = .0001;
-const int growthBufferSteps = 15;
+const int growthBufferSteps = 5;
 
 const int numNewLeaves = 3;
 
