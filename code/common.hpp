@@ -26,7 +26,8 @@ struct State {
   // bool timeToggle;
   bool drawLeaves;
   bool drawBranches;
-  bool drawGround;  
+  bool drawGround; 
+  bool toggleFog; 
 
   Vec3f leafPos[MAX_LEAVES];    //240000
   Color leafColor[MAX_LEAVES];  //240000
@@ -62,4 +63,5 @@ void InitState(State* state){
   state->drawLeaves = true;
   state->drawBranches = false;
   state->drawGround = true;
+  state->toggleFog = true;
 }

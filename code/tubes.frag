@@ -1,5 +1,6 @@
 uniform sampler2D texSampler0;
 uniform float frame_num;
+uniform bool toggle_fog;
 
 ///////////////////////////////////////////////////////////////////////
 // F U N C T I O N S
@@ -171,7 +172,7 @@ void main(){
   Cd.r += pow(((sin((phase - phase_offset) * w_freq) + .5) * w_amp), 3.); 
 
   Cd.r += pow(1.-gl_Color.r, 10.) * 0.5; // high power gives bright tips with nice falloff
-/*!*/ Cd.r *= Cd.g; // apply z-depth darkening
+/*!*/ if (toggle_fog) Cd.r *= Cd.g; // apply z-depth darkening
   if (Cd.r >= 1.) Cd.r = 1.;
   if (Cd.r <= 0.05) Cd.r = 0.05;
 
@@ -186,5 +187,6 @@ void main(){
   Cd.rgb = bch2RGB(Cd.rgb);
 
   gl_FragColor = Cd;
+
   // gl_FragColor = texture2D(texSampler0, gl_TexCoord[0].xy) * gl_Color;
 }

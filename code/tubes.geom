@@ -196,19 +196,22 @@ void main(){
   // vec4 v0 = vec4(gl_PositionIn[0].xyz, 0.5);
   // vec4 v1 = vec4(gl_PositionIn[1].xyz, 0.5);
   vec4 vtx[2];
+  vec4 Cd = gl_FrontColorIn[0];
   vtx[0] = vec4(gl_PositionIn[0].xyz, 0.5);
   vtx[1] = vec4(gl_PositionIn[1].xyz, 0.5);
   // do some wiggling
   // offset = animation speed
-  vec3 offset = vec3(frame_num*.05);
+  vec3 offset = vec3(frame_num*.01);
 
   // get 1D noise for each point position
   // outside multiplier = amplitude
   // poisition multiplier = frequency
   // 2nd parameter = noise scale (i think)
-  float n_amplitude = 0.;
-  float noise_0 = n_amplitude * pnoise((vtx[0].xyz + offset) * 0.5, vec3(100.));
-  float noise_1 = n_amplitude * pnoise((vtx[1].xyz + offset) * 0.5, vec3(100.));
+  float c_clamp = Cd.r * 0.5;
+  clamp(c_clamp, 0.,1.);
+  float n_amplitude = (1.-c_clamp)*0.015;
+  float noise_0 = n_amplitude * pnoise((vtx[0].xyz + offset) * 1.5, vec3(100.));
+  float noise_1 = n_amplitude * pnoise((vtx[1].xyz + offset) * 1.5, vec3(100.));
 
   // get normalized point poisition. this is what direction we will perturb the original by
   // there's probably a smarter vector we should be using for this
@@ -224,10 +227,9 @@ void main(){
 
 
   // get radius from red channel
-  vec4 Cd = gl_FrontColorIn[0];
   float radius[2] = float[2](1.,1.);
   float max_radius = 0.01;
-  float min_radius = Cd.r * .04;
+  float min_radius = Cd.r * .1;
   radius[0] *= max_radius;
   if (radius[0] >= max_radius) radius[0] = max_radius;
 
@@ -292,6 +294,7 @@ void main(){
       }
     }
   }
+
 
   EndPrimitive();
 

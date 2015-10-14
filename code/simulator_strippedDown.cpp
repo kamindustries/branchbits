@@ -58,8 +58,8 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     
     // WINDOW & CAMERA
     // initial camera position and far clipping plane
+    lens().far(300);
     nav().pos(0, 0, 0);
-    lens().far(1000);
     initWindow(Window::Dim(0, 0, 600, 400), "Pineal Portal", 60);
 
     // set up ground plane
@@ -286,6 +286,7 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
 
     shaderP.begin();
       shaderP.uniform("frame_num", float(frame_num));
+      shaderP.uniform("toggle_fog", state->toggleFog);
       g.draw(m_tree);
     shaderP.end();
 
@@ -318,6 +319,11 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
       if (fov < 0) fov = 0;
       lens().fovy(fov);
       cout << "fov: " << fov << endl;
+    }
+
+    if (k.key() == 'f' ) {
+      state->toggleFog = !state->toggleFog;
+      cout << "Fog toggle " << state->toggleFog << endl;
     }
 
     if (k.key() == 'm' ) {
