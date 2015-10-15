@@ -201,8 +201,7 @@ void main(){
   vtx[1] = vec4(gl_PositionIn[1].xyz, 0.5);
   // do some wiggling
   // offset = animation speed
-  float n_speed = 0.009;
-  vec3 offset = vec3(frame_num * n_speed);
+  vec3 offset = vec3(frame_num*.01);
 
   // get 1D noise for each point position
   // outside multiplier = amplitude
@@ -211,10 +210,8 @@ void main(){
   float c_clamp = Cd.r * 0.5;
   clamp(c_clamp, 0.,1.);
   float n_amplitude = (1.-c_clamp)*0.015;
-  // float n_amplitude = .08;
-  // float n_freq = 1.5;
-  float noise_0 = n_amplitude * pnoise((vtx[0].xyz + offset) * n_freq, vec3(100.));
-  float noise_1 = n_amplitude * pnoise((vtx[1].xyz + offset) * n_freq, vec3(100.));
+  float noise_0 = n_amplitude * pnoise((vtx[0].xyz + offset) * 1.5, vec3(100.));
+  float noise_1 = n_amplitude * pnoise((vtx[1].xyz + offset) * 1.5, vec3(100.));
 
   // get normalized point poisition. this is what direction we will perturb the original by
   // there's probably a smarter vector we should be using for this
@@ -227,6 +224,7 @@ void main(){
   vtx[0].xyz += (v0_norm * noise_0);
   vtx[1].xyz += (v1_norm * noise_1);
   // // end noise
+
 
   // get radius from red channel
   float radius[2] = float[2](1.,1.);
@@ -243,11 +241,8 @@ void main(){
   float w_amp = .3;
   float w_freq = 2.;
   // this matches sin to same one controlling brightness in frag
-  radius[0] *= pow(((sin((phase + phase_offset) * w_freq) + 1.) * w_amp), 5.);
+  radius[0] *= pow(((sin((phase - phase_offset) * w_freq) + 1.) * w_amp), 3.); 
   radius[0] += min_radius;
-
-  // radius[0] *= 4.; // DELETE ME
-
   // taper end of this segment to match (sorta) the next one
   radius[1] = radius[0] * .98;
 
@@ -271,10 +266,6 @@ void main(){
 
       // assign z depth to green channel for use in fragment
       vec4 Ci = gl_FrontColorIn[j];
-      // Ci.g = (1.-(pow(gl_Position.z, 3.0) * .01))+0.1; // must match final condition
-      // if (Ci.g <= .1) Ci.g = 0.1;
-      // else if (Ci.g >= 1.) Ci.g = 1.;
-
       Ci.g = 1.-(pow(gl_Position.z, 1.5) * .1)*.1;
       gl_FrontColor = Ci;
       EmitVertex();
@@ -297,15 +288,13 @@ void main(){
 
         // assign z depth to green channel for use in fragment
         vec4 Ci = gl_FrontColorIn[j];
-        // Ci.g = (1.-(pow(gl_Position.z, 3.0) * .01))+0.1; 
-        // if (Ci.g <= .1) Ci.g = 0.1;
-        // else if (Ci.g >= 1.) Ci.g = 1.;
         Ci.g = 1.-(pow(gl_Position.z, 1.5) * .1)*.1;
         gl_FrontColor = Ci;
         EmitVertex();
       }
     }
   }
+
 
   EndPrimitive();
 

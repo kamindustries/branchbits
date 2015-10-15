@@ -67,7 +67,7 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     // WINDOW & CAMERA
     // initial camera position and far clipping plane
     nav().pos(0, 0, 0);
-    lens().far(1000);
+    lens().far(300);
     initWindow(Window::Dim(0, 0, 600, 400), "Pineal Portal", 60);
 
     // set up ground plane
@@ -201,7 +201,7 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
   // T H R E A D
   ///////////////////////////////////////////////////////////////////////
   void startThread() {
-    oldPos_tree = m_tree.vertices(); // let's call it once after Trunk()
+    // oldPos_tree = m_tree.vertices(); // let's call it once after Trunk()
     computeThread = thread([&]() {
       while (threadDone == false ) {
         //growth iteration running away from anim step
@@ -287,7 +287,8 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
         m_tree.vertices()[i+1] = newPos_tree[i/2];
         continue;
       }
-      m_tree.vertices()[i+1] = oldPos_tree[i+1] * (1-time) + newPos_tree[i/2] * time;
+      // m_tree.vertices()[i+1] = oldPos_tree[i+1] * (1-time) + newPos_tree[i/2] * time;
+      m_tree.vertices()[i+1] = m_tree.vertices()[i+1] * (1-time) + newPos_tree[i/2] * time;
       dist = abs(Vec3f(m_tree.vertices()[i+1] - newPos_tree[i/2]));
     }
 
