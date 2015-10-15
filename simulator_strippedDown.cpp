@@ -108,7 +108,7 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
 
     SearchPaths searchPaths;
     // searchPaths.addAppPaths();
-    searchPaths.addSearchPath("./branchbits/sphere", false);
+    searchPaths.addSearchPath("./branchbits", false);
     cout << "Here are all the search paths:" << endl;
     searchPaths.print();
 
@@ -172,7 +172,7 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
 
     // load shaders from files
     SearchPaths searchPaths;
-    searchPaths.addSearchPath("./branchbits/sphere", false);
+    searchPaths.addSearchPath("./branchbits", false);
     
     File vPointSprite(searchPaths.find("tubes.vert"), "r", true);
     File fPointSprite(searchPaths.find("tubes.frag"), "r", true);
@@ -417,7 +417,7 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     }
 
     if (k.key() == 'g' || k.key() == 'G') {
-      // resent mode
+      // present mode
 
       state->refreshLeaves = 1;
 
@@ -441,7 +441,7 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     }
 
     if (k.key() == 'h' || k.key() == 'H') {
-      // resent mode
+      // present mode
 
       state->refreshLeaves = 1;
 
