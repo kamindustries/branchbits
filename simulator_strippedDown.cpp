@@ -112,7 +112,6 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     cout << "Here are all the search paths:" << endl;
     searchPaths.print();
 
-    // const char *soundFileName0 = "branches_substrate_1.L.wav";
     const char *soundFileName0 = "branches_sound_3min_v1.wav";
 
     string soundFilePath0 = searchPaths.find(soundFileName0).filepath();
@@ -374,7 +373,7 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
       } else if (PLAYING == 2) {
         s = samplePlayer1() / 50.0;
       }
-
+ 
       tap.writeSample(s);
     }
 
