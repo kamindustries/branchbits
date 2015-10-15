@@ -8,7 +8,7 @@ using namespace std;
 // #define LEAF_COUNT 2200  // number of leaves
 #define LEAF_COUNT 6000  // number of leaves
 #define STEPS 30         // number of iterations
-#define NUM_VTX 100000         // max number of verts in tree mesh
+#define NUM_VTX 200000         // max number of verts in tree mesh
 #define MAX_LEAVES 20000
 
 ///////////////////////////////////////////////////////////////////////
@@ -26,7 +26,8 @@ struct State {
   // bool timeToggle;
   bool drawLeaves;
   bool drawBranches;
-  bool drawGround;  
+  bool drawGround;
+  bool toggleFog; 
 
   Vec3f leafPos[MAX_LEAVES];    //240000
   Color leafColor[MAX_LEAVES];  //240000
@@ -62,4 +63,5 @@ void InitState(State* state){
   state->drawLeaves = true;
   state->drawBranches = false;
   state->drawGround = true;
+  state->toggleFog = true;
 }

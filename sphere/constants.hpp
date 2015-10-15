@@ -5,7 +5,7 @@
 using namespace al;
 using namespace std;
 
-const float anim_speed = 1.05;  
+const float anim_speed = 1.4;
 // const float anim_speed = 2.4;
 const float treeHeight = 2.5;   
 const float trunkHeight = 1.;
@@ -25,6 +25,8 @@ const Color rootColor = HSV(.2,.5,.35);
 const Color leafColorUnhit = HSV(.35,.6,.35);
 const Color leafColorHit = HSV(.35,.9,.8);
 const Color groundColor = HSV(.3,.1,.15);
+
+bool threadDone = false;
 
 // const float maxWidthIncrement = 100.f;
 // const float widthIncrement = .15;

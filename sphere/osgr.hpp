@@ -1,5 +1,5 @@
-#ifndef AL_OMNI_STEREO_GRAPHICS_RENDERER_H
-#define AL_OMNI_STEREO_GRAPHICS_RENDERER_H
+#ifndef AL_OMNI_STEREO_GRAPHICS_RENDERER1_H
+#define AL_OMNI_STEREO_GRAPHICS_RENDERER1_H
 
 #include "allocore/al_Allocore.hpp"
 #include "allocore/io/al_Window.hpp"

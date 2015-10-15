@@ -34,7 +34,7 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
   cuttlebone::Maker<State, 9000> maker;
 
   Mesh m_leaf;
-  Buffer<Mesh::Vertex> oldPos_tree;
+  // Buffer<Mesh::Vertex> oldPos_tree;
   Mesh groundPlane;
 
   // Graphics gl;
@@ -43,7 +43,7 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
 
   // thread stuff
   thread computeThread;
-  bool threadDone = false;
+  // bool threadDone = false;
 
   SoundSource tap;
   gam::SamplePlayer<> samplePlayer0;
@@ -207,7 +207,7 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
         //growth iteration running away from anim step
         if (animStep >= growthIteration - growthBufferSteps) {
             Grow(state);
-            oldPos_tree = m_tree.vertices(); // trxxee from last grow? ???
+            // oldPos_tree = m_tree.vertices(); // trxxee from last grow? ???
         }
       }
     });
@@ -274,6 +274,7 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
     }
     
     time += dt;
+    float dist;
     // animate based on two points starting in the same position. 
     // we will move one of them to its new position to form a branch.
 
@@ -287,9 +288,15 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
         continue;
       }
       m_tree.vertices()[i+1] = oldPos_tree[i+1] * (1-time) + newPos_tree[i/2] * time;
+      dist = abs(Vec3f(m_tree.vertices()[i+1] - newPos_tree[i/2]));
     }
 
-    if (time > 1) {
+    // if (time > 1) {
+    //   waitingToAnimateNextStep = true;
+    //   time = 0;
+    // }
+
+    if (dist < .001) {
       waitingToAnimateNextStep = true;
       time = 0;
     }
@@ -345,6 +352,7 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
 
     shaderP.begin();
       shaderP.uniform("frame_num", float(frame_num));
+      shaderP.uniform("toggle_fog", state->toggleFog);
       g.draw(m_tree);
     shaderP.end();
 
@@ -394,7 +402,7 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
       if (state->drawLeaves == true) state->drawLeaves = false;
       else if (state->drawLeaves == false) state->drawLeaves = true; state->refreshLeaves = 1;
     }
-    if (k.key() == 'g') {
+    if (k.key() == 'y') {
       if (state->drawGround == true) state->drawGround = false;
       else if (state->drawGround == false) state->drawGround = true;
     }
@@ -483,7 +491,22 @@ struct SpaceCol : App, AlloSphereAudioSpatializer, InterfaceServerClient {
       }
     }
 
+    if (k.key() == '=' ) {
+      float fov = lens().fovy() + 1;
+      lens().fovy(fov);
+      cout << "fov: " << fov << endl;
+    }
+    if (k.key() == '-' ) {
+      float fov = lens().fovy() - 1;
+      if (fov < 0) fov = 0;
+      lens().fovy(fov);
+      cout << "fov: " << fov << endl;
+    }
 
+    if (k.key() == 'f' ) {
+      state->toggleFog = !state->toggleFog;
+      cout << "Fog toggle " << state->toggleFog << endl;
+    }
   }
 };
 
