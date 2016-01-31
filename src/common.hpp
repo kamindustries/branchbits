@@ -5,7 +5,6 @@
 using namespace al;
 using namespace std;
 
-// #define LEAF_COUNT 2200  // number of leaves
 #define LEAF_COUNT 6000  // number of leaves
 #define STEPS 30         // number of iterations
 #define NUM_VTX 200000         // max number of verts in tree mesh
@@ -16,34 +15,32 @@ using namespace std;
 ///////////////////////////////////////////////////////////////////////
 struct State {
   double eyeSeparation, nearClip, farClip;
-  double t;    // simulation time
+  double t;
   int frame_num; 
-  unsigned n;  // "frame" number
+  unsigned n;
   float focalLength;
-  Pose pose;   // for navigation
+  Pose pose;
   Color backgroundColor;
   
-  // bool timeToggle;
   bool drawLeaves;
   bool drawBranches;
   bool drawGround;
   bool toggleFog; 
 
-  Vec3f leafPos[MAX_LEAVES];    //240000
-  Color leafColor[MAX_LEAVES];  //240000
+  Vec3f leafPos[MAX_LEAVES];
+  Color leafColor[MAX_LEAVES];
   int refreshLeaves;
   int refreshTree;
 
-  // treePos is main thing being drawn in graphics.cpp
-  Vec3f treePos[NUM_VTX];             //600000
-  Color treeColor[NUM_VTX];           //600000
+  Vec3f treePos[NUM_VTX];
+  Color treeColor[NUM_VTX];
   int pSize;                    
   int cSize;
 
   int currentLeafSize;
 
-  double audioGain;             //8
-  float f[LEAF_COUNT];                   //8800
+  double audioGain;
+  float f[LEAF_COUNT];
 
   void print() {
     cout << "printin stuff from state!" << endl;
