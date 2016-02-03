@@ -1,0 +1,8 @@
+build/
+data/
+init_alproj.sh
+build/
+cmake_modules/
+run.sh
+CMakeLists.txt
+distclean
