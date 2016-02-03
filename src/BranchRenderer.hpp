@@ -111,7 +111,7 @@ inline void BranchRenderer::initShaders() {
   Shader shaderV, shaderF, shaderG;
 
   SearchPaths searchPaths;
-  searchPaths.addSearchPath("./branchbits", true);
+  searchPaths.addSearchPath(".", true);
 
   File vPointSprite(searchPaths.find("omni.vert"), "r", true);
   File fPointSprite(searchPaths.find("omni.frag"), "r", true);
